@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Join Our Talent Pool — Nexova</title>
+<meta name="description" content="Register your profile with Nexova's talent pool. Tell us about your experience, sector of interest, English level, and availability." />
+<link rel="alternate" hreflang="en" href="https://nexova.com/application.html" />
+<link rel="alternate" hreflang="es" href="https://nexova.com/application.es.html" />
+<link rel="alternate" hreflang="x-default" href="https://nexova.com/application.html" />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<!-- Tailwind (compiled build, see package.json) -->
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-paper text-ink-700 font-body antialiased">
+
+<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-ink focus:text-paper focus:px-4 focus:py-2 focus:rounded">
+  Skip to main content
+</a>
+
+<!-- ===================== HEADER ===================== -->
+<header class="sticky top-0 z-40 bg-paper/90 backdrop-blur border-b border-ink/10">
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 h-16 md:h-20 flex items-center justify-between">
+    <a href="index.html" class="font-display italic font-semibold text-2xl md:text-[1.75rem] text-ink tracking-tight">
+      Nexova
+    </a>
+
+    <nav aria-label="Primary" class="hidden md:flex items-center gap-8">
+      <ul class="flex items-center gap-8 font-medium text-sm text-ink-700">
+        <li><a href="index.html" class="hover:text-aegean transition-colors">Home</a></li>
+        <li><a href="index.html#services" class="hover:text-aegean transition-colors">Services</a></li>
+        <li><a href="application.html" aria-current="page" class="text-aegean-dark hover:text-aegean transition-colors">Talent</a></li>
+        <li><a href="index.html#contact" class="hover:text-aegean transition-colors">Contact</a></li>
+      </ul>
+      <a href="application.html"
+         class="inline-flex items-center gap-2 bg-ink text-paper text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-aegean-dark transition-colors">
+        Join our talent pool
+      </a>
+      <a href="application.es.html" hreflang="es" lang="es"
+         class="font-mono text-xs font-medium text-ink-500 border border-ink/15 rounded-full w-8 h-8 flex items-center justify-center hover:border-aegean hover:text-aegean-dark transition-colors"
+         aria-label="Ver esta página en español">
+        ES
+      </a>
+    </nav>
+
+    <button id="menu-toggle" type="button"
+            class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full border border-ink/15 text-ink"
+            aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+      <svg id="icon-open" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M4 7h16M4 12h16M4 17h16"/>
+      </svg>
+      <svg id="icon-close" class="w-5 h-5 hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M6 6l12 12M18 6L6 18"/>
+      </svg>
+    </button>
+  </div>
+
+  <nav id="mobile-menu" aria-label="Mobile" class="md:hidden hidden border-t border-ink/10 bg-paper">
+    <ul class="max-w-6xl mx-auto px-5 py-4 flex flex-col gap-4 text-ink-700 font-medium">
+      <li><a href="index.html" class="block py-1">Home</a></li>
+      <li><a href="index.html#services" class="block py-1">Services</a></li>
+      <li><a href="application.html" class="block py-1 text-aegean-dark">Talent</a></li>
+      <li><a href="index.html#contact" class="block py-1">Contact</a></li>
+      <li>
+        <a href="application.es.html" hreflang="es" lang="es" class="inline-flex items-center gap-2 font-mono text-xs font-medium text-ink-500">
+          Ver en español (ES)
+        </a>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- ===================== INTRO ===================== -->
+  <section class="border-b border-ink/10" aria-labelledby="form-heading">
+    <div class="max-w-3xl mx-auto px-5 sm:px-8 pt-14 sm:pt-20 pb-10">
+      <p class="font-mono text-xs tracking-[0.2em] uppercase text-aegean-dark mb-4">Talent pool</p>
+      <h1 id="form-heading" class="font-display font-semibold text-ink text-3xl sm:text-4xl tracking-tight">
+        Register your profile
+      </h1>
+      <p class="mt-4 text-ink-500 leading-relaxed max-w-xl">
+        Tell us about your experience and what you're looking for. Our selection team reviews every profile and will reach out when there's a match with a current or future opportunity.
+      </p>
+
+      <div class="mt-8 flex items-start gap-3 bg-aegean-50 border border-aegean/25 rounded-2xl p-5" role="note">
+        <svg class="w-5 h-5 flex-shrink-0 text-aegean-dark mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/>
+        </svg>
+        <p class="text-sm text-ink-700 leading-relaxed">
+          This form is for professionals looking for their next opportunity. Are you a company looking for talent? Write to us at
+          <a href="mailto:contacto@nexova.com" class="font-semibold text-aegean-dark underline underline-offset-2">contacto@nexova.com</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SUCCESS PANEL (hidden until submit) ===================== -->
+  <section id="success-panel" class="hidden" aria-labelledby="success-heading">
+    <div class="max-w-3xl mx-auto px-5 sm:px-8 py-16 sm:py-20">
+      <div tabindex="-1" id="success-focus" class="bg-success-50 border border-success/30 rounded-2xl p-8 sm:p-10 text-center" role="status">
+        <div class="w-14 h-14 rounded-full bg-success/10 text-success mx-auto flex items-center justify-center" aria-hidden="true">
+          <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+        </div>
+        <h2 id="success-heading" class="mt-6 font-display font-semibold text-ink text-2xl sm:text-3xl">
+          Thank you for your interest in Nexova!
+        </h2>
+        <p class="mt-4 text-ink-700 leading-relaxed max-w-lg mx-auto">
+          We have received your information. Our selection team will review it and contact you if your profile matches any of our current or future opportunities.
+        </p>
+        <p class="mt-3 text-ink-500 leading-relaxed max-w-lg mx-auto">
+          In the meantime, follow us on LinkedIn to stay updated on our vacancies and professional development content.
+        </p>
+        <div class="mt-7 flex flex-wrap justify-center gap-3">
+          <a href="https://linkedin.com/company/nexova" target="_blank" rel="noopener noreferrer"
+             class="inline-flex items-center gap-2 bg-ink text-paper text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-aegean-dark transition-colors">
+            Follow us on LinkedIn
+          </a>
+          <a href="index.html" class="inline-flex items-center gap-2 text-ink font-semibold text-sm px-5 py-2.5 border border-ink/20 rounded-full hover:border-aegean transition-colors">
+            Back to home
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FORM ===================== -->
+  <section id="form-section" class="pb-20 sm:pb-28">
+    <div class="max-w-3xl mx-auto px-5 sm:px-8 pt-4">
+      <form id="talent-form" novalidate>
+
+        <!-- Personal details -->
+        <fieldset class="pt-8 border-t border-ink/10 first:border-t-0 first:pt-0">
+          <legend class="font-display font-semibold text-ink text-xl mb-1">Personal details</legend>
+          <p class="text-sm text-ink-500 mb-6">How can we reach you?</p>
+
+          <div class="grid sm:grid-cols-2 gap-x-6 gap-y-6">
+            <div class="sm:col-span-2">
+              <label for="full-name" class="block text-sm font-medium text-ink mb-1.5">
+                Full name <span class="text-error" aria-hidden="true">*</span>
+              </label>
+              <input type="text" id="full-name" name="full-name" required
+                     autocomplete="name"
+                     aria-describedby="full-name-error"
+                     class="w-full rounded-lg border border-ink/20 bg-paper px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-aegean focus:border-aegean transition-colors" />
+              <p id="full-name-error" class="mt-1.5 text-sm text-error hidden" role="alert"></p>
+            </div>
+
+            <div>
+              <label for="email" class="block text-sm font-medium text-ink mb-1.5">
+                Email <span class="text-error" aria-hidden="true">*</span>
+              </label>
+              <input type="email" id="email" name="email" required
+                     autocomplete="email" placeholder="name@company.com"
+                     aria-describedby="email-error"
+                     class="w-full rounded-lg border border-ink/20 bg-paper px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-aegean focus:border-aegean transition-colors" />
+              <p id="email-error" class="mt-1.5 text-sm text-error hidden" role="alert"></p>
+            </div>
+
+            <div>
+              <label for="phone" class="block text-sm font-medium text-ink mb-1.5">
+                Phone <span class="text-error" aria-hidden="true">*</span>
+              </label>
+              <input type="tel" id="phone" name="phone" required
+                     autocomplete="tel" placeholder="+34 612 345 678"
+                     aria-describedby="phone-error phone-hint"
+                     class="w-full rounded-lg border border-ink/20 bg-paper px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-aegean focus:border-aegean transition-colors" />
+              <p id="phone-hint" class="mt-1.5 text-xs text-ink-500">Include country code, e.g. +34 612 345 678</p>
+              <p id="phone-error" class="mt-1.5 text-sm text-error hidden" role="alert"></p>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label for="country" class="block text-sm font-medium text-ink mb-1.5">
+                Country of residence <span class="text-error" aria-hidden="true">*</span>
+              </label>
+              <select id="country" name="country" required
+                      autocomplete="country-name"
+                      aria-describedby="country-error"
+                      class="w-full rounded-lg border border-ink/20 bg-paper px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-aegean focus:border-aegean transition-colors">
+                <option value="" selected disabled>Select a country</option>
+                <option value="Spain">Spain</option>
+                <option value="United States">United States</option>
+                <option value="Other">Other</option>
+              </select>
+              <p id="country-error" class="mt-1.5 text-sm text-error hidden" role="alert"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Professional profile -->
+        <fieldset class="pt-10 mt-10 border-t border-ink/10">
+          <legend class="font-display font-semibold text-ink text-xl mb-1">Professional profile</legend>
+          <p class="text-sm text-ink-500 mb-6">Help us match you with the right opportunity.</p>
+
+          <div class="grid sm:grid-cols-2 gap-x-6 gap-y-6">
+            <div>
+              <label for="years-experience" class="block text-sm font-medium text-ink mb-1.5">
+                Years of experience <span class="text-error" aria-hidden="true">*</span>
+              </label>
+              <input type="number" id="years-experience" name="years-experience" required
+                     min="0" max="50" step="1" inputmode="numeric"
+                     aria-describedby="years-experience-error"
+                     class="w-full rounded-lg border border-ink/20 bg-paper px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-aegean focus:border-aegean transition-colors" />
+              <p id="years-experience-error" class="mt-1.5 text-sm text-error hidden" role="alert"></p>
+            </div>
+
+            <div>
+              <label for="sector" class="block text-sm font-medium text-ink mb-1.5">
+                Sector of interest <span class="text-error" aria-hidden="true">*</span>
+              </label>
+              <select id="sector" name="sector" required
+                      aria-describedby="sector-error"
+                      class="w-full rounded-lg border border-ink/20 bg-paper px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-aegean focus:border-aegean transition-colors">
+                <option value="" selected disabled>Select a sector</option>
+                <option value="Technology">Technology</option>
+                <option value="Retail">Retail</option>
+                <option value="Financial Services">Financial Services</option>
+                <option value="Consulting">Consulting</option>
+                <option value="Other">Other</option>
+              </select>
+              <p id="sector-error" class="mt-1.5 text-sm text-error hidden" role="alert"></p>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label for="english-level" class="block text-sm font-medium text-ink mb-1.5">
+                English level <span class="text-error" aria-hidden="true">*</span>
+              </label>
+              <select id="english-level" name="english-level" required
+                      aria-describedby="english-level-error"
+                      class="w-full sm:w-1/2 rounded-lg border border-ink/20 bg-paper px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-aegean focus:border-aegean transition-colors">
+                <option value="" selected disabled>Select a level</option>
+                <option value="Basic">Basic</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+                <option value="Native">Native</option>
+              </select>
+              <p id="english-level-error" class="mt-1.5 text-sm text-error hidden" role="alert"></p>
+            </div>
+
+            <div class="sm:col-span-2">
+              <fieldset aria-describedby="availability-error">
+                <legend id="availability-legend" class="block text-sm font-medium text-ink mb-2">
+                  Availability <span class="text-error" aria-hidden="true">*</span>
+                </legend>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" role="radiogroup" aria-labelledby="availability-legend">
+                  <label class="availability-option relative flex items-center justify-center text-center text-sm font-medium rounded-lg border border-ink/20 px-3 py-2.5 cursor-pointer hover:border-aegean transition-colors has-[:checked]:bg-aegean has-[:checked]:text-paper has-[:checked]:border-aegean has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-aegean">
+                    <input type="radio" name="availability" value="Immediate" required class="sr-only" />
+                    Immediate
+                  </label>
+                  <label class="availability-option relative flex items-center justify-center text-center text-sm font-medium rounded-lg border border-ink/20 px-3 py-2.5 cursor-pointer hover:border-aegean transition-colors has-[:checked]:bg-aegean has-[:checked]:text-paper has-[:checked]:border-aegean has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-aegean">
+                    <input type="radio" name="availability" value="1 month" required class="sr-only" />
+                    1 month
+                  </label>
+                  <label class="availability-option relative flex items-center justify-center text-center text-sm font-medium rounded-lg border border-ink/20 px-3 py-2.5 cursor-pointer hover:border-aegean transition-colors has-[:checked]:bg-aegean has-[:checked]:text-paper has-[:checked]:border-aegean has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-aegean">
+                    <input type="radio" name="availability" value="2-3 months" required class="sr-only" />
+                    2-3 months
+                  </label>
+                  <label class="availability-option relative flex items-center justify-center text-center text-sm font-medium rounded-lg border border-ink/20 px-3 py-2.5 cursor-pointer hover:border-aegean transition-colors has-[:checked]:bg-aegean has-[:checked]:text-paper has-[:checked]:border-aegean has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-aegean">
+                    <input type="radio" name="availability" value="Just exploring" required class="sr-only" />
+                    Just exploring
+                  </label>
+                </div>
+              </fieldset>
+              <p id="availability-error" class="mt-1.5 text-sm text-error hidden" role="alert"></p>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label for="linkedin" class="block text-sm font-medium text-ink mb-1.5">
+                LinkedIn profile <span class="text-ink-500 font-normal">(optional)</span>
+              </label>
+              <input type="url" id="linkedin" name="linkedin"
+                     placeholder="https://linkedin.com/in/your-name"
+                     aria-describedby="linkedin-error"
+                     class="w-full rounded-lg border border-ink/20 bg-paper px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-aegean focus:border-aegean transition-colors" />
+              <p id="linkedin-error" class="mt-1.5 text-sm text-error hidden" role="alert"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <!-- Additional information -->
+        <fieldset class="pt-10 mt-10 border-t border-ink/10">
+          <legend class="font-display font-semibold text-ink text-xl mb-1">Additional information</legend>
+          <p class="text-sm text-ink-500 mb-6">Anything else you'd like our team to know?</p>
+
+          <div>
+            <label for="comments" class="block text-sm font-medium text-ink mb-1.5">
+              Additional comments <span class="text-ink-500 font-normal">(optional)</span>
+            </label>
+            <textarea id="comments" name="comments" rows="4" maxlength="500"
+                      aria-describedby="comments-count comments-error"
+                      class="w-full rounded-lg border border-ink/20 bg-paper px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-aegean focus:border-aegean transition-colors resize-y"></textarea>
+            <div class="mt-1.5 flex items-center justify-between">
+              <p id="comments-error" class="text-sm text-error hidden" role="alert"></p>
+              <p id="comments-count" class="text-xs text-ink-500 ml-auto" aria-live="polite">500 characters remaining</p>
+            </div>
+          </div>
+
+          <div class="mt-7">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" id="consent" name="consent" required
+                     aria-describedby="consent-error"
+                     class="mt-1 w-4 h-4 rounded border-ink/30 text-aegean focus:ring-aegean flex-shrink-0" />
+              <span class="text-sm text-ink-700">
+                I accept the data processing policy <span class="text-error" aria-hidden="true">*</span>
+              </span>
+            </label>
+            <p id="consent-error" class="mt-1.5 text-sm text-error hidden" role="alert"></p>
+          </div>
+        </fieldset>
+
+        <div class="mt-10 flex flex-wrap items-center gap-4">
+          <button type="submit"
+                  class="inline-flex items-center gap-2 bg-olive text-ink font-semibold px-6 py-3.5 rounded-full hover:bg-olive-dark hover:text-paper transition-colors">
+            Submit application
+          </button>
+          <button type="button" id="clear-form"
+                  class="inline-flex items-center gap-2 text-ink font-semibold px-6 py-3.5 border border-ink/20 rounded-full hover:border-aegean transition-colors">
+            Clear form
+          </button>
+        </div>
+
+        <p id="form-summary-error" class="mt-5 text-sm text-error hidden" role="alert" aria-live="assertive">
+          Please review the highlighted fields before submitting.
+        </p>
+      </form>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===================== FOOTER ===================== -->
+<footer class="bg-ink text-paper/70 border-t border-paper/10">
+  <div class="max-w-6xl mx-auto px-5 sm:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-6">
+    <a href="index.html" class="font-display italic font-semibold text-xl text-paper">Nexova</a>
+
+    <nav aria-label="Footer">
+      <ul class="flex flex-wrap justify-center gap-6 text-sm">
+        <li><a href="index.html" class="hover:text-olive transition-colors">Home</a></li>
+        <li><a href="index.html#services" class="hover:text-olive transition-colors">Services</a></li>
+        <li><a href="application.html" class="hover:text-olive transition-colors">Talent</a></li>
+        <li><a href="index.html#contact" class="hover:text-olive transition-colors">Contact</a></li>
+      </ul>
+    </nav>
+
+    <ul class="flex items-center gap-4">
+      <li>
+        <a href="https://linkedin.com/company/nexova" target="_blank" rel="noopener noreferrer" aria-label="Nexova on LinkedIn"
+           class="w-9 h-9 rounded-full border border-paper/20 flex items-center justify-center hover:border-olive hover:text-olive transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.94 8.5H3.56V20h3.38V8.5zM5.25 3.5a1.97 1.97 0 100 3.94 1.97 1.97 0 000-3.94zM20.45 20h-3.37v-5.6c0-1.34-.03-3.06-1.87-3.06-1.87 0-2.16 1.46-2.16 2.96V20H9.68V8.5h3.24v1.57h.05c.45-.85 1.56-1.75 3.21-1.75 3.43 0 4.06 2.26 4.06 5.2V20z"/></svg>
+        </a>
+      </li>
+      <li>
+        <a href="https://instagram.com/nexova" target="_blank" rel="noopener noreferrer" aria-label="Nexova on Instagram"
+           class="w-9 h-9 rounded-full border border-paper/20 flex items-center justify-center hover:border-olive hover:text-olive transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg>
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="border-t border-paper/10">
+    <p class="max-w-6xl mx-auto px-5 sm:px-8 py-5 text-xs text-paper/40">© 2025 Nexova. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+  // Mobile menu toggle
+  const menuToggle = document.getElementById('menu-toggle');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const iconOpen = document.getElementById('icon-open');
+  const iconClose = document.getElementById('icon-close');
+
+  menuToggle.addEventListener('click', () => {
+    const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+    menuToggle.setAttribute('aria-expanded', String(!isOpen));
+    menuToggle.setAttribute('aria-label', isOpen ? 'Open menu' : 'Close menu');
+    mobileMenu.classList.toggle('hidden');
+    iconOpen.classList.toggle('hidden');
+    iconClose.classList.toggle('hidden');
+  });
+</script>
+
+<script src="validation.js" defer></script>
+</body>
+</html>
