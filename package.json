@@ -6,6 +6,8 @@
   "description": "Nexova public website — landing page and talent registration form.",
   "scripts": {
     "build": "tailwindcss -i ./src/input.css -o ./styles.css --minify",
+    "prepare:public": "rm -rf public && mkdir -p public && cp index.html application.html index.es.html application.es.html styles.css validation.js validation.es.js public/",
+    "build:vercel": "npm run build && npm run prepare:public",
     "watch": "tailwindcss -i ./src/input.css -o ./styles.css --watch",
     "serve": "http-server . -p 3000 -a 0.0.0.0",
     "dev": "npm run watch & npm run serve"
