@@ -17,20 +17,22 @@ function CandidateListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchCandidates = useCallback(() => {
+  const fetchCandidates = useCallback(async () => {
     setLoading(true);
     setError(null);
-    api
-      .listCandidates(queryParams)
-      .then((res) => setCandidates(res.data))
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : "Something went wrong.")
-      )
-      .finally(() => setLoading(false));
+    try {
+      const res = await api.listCandidates(queryParams);
+      setCandidates(res.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
   }, [queryParams]);
 
   useEffect(() => {
-    fetchCandidates();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchCandidates();
   }, [fetchCandidates]);
 
   return (
@@ -58,7 +60,7 @@ function CandidateListPage() {
       />
 
       {loading && <LoadingState label="Loading candidates…" />}
-      {!loading && error && <ErrorState message={error} onRetry={fetchCandidates} />}
+      {!loading && error && <ErrorState message={error} onRetry={() => void fetchCandidates()} />}
       {!loading && !error && <CandidateTable candidates={candidates} />}
     </main>
   );

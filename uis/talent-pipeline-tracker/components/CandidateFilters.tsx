@@ -25,6 +25,8 @@ export function CandidateFilters({
   const [searchInput, setSearchInput] = useState(search);
 
   useEffect(() => {
+    // Keep local debounced input aligned with URL state when navigating history.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSearchInput(search);
   }, [search]);
 

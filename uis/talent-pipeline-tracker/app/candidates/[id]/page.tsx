@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import type { Candidate, Note, StatusValue, StageValue } from "@/types/candidate";
-import { STATUS_OPTIONS, STAGE_OPTIONS, STATUS_LABELS, STAGE_LABELS } from "@/lib/labels";
+import { STATUS_OPTIONS, STAGE_OPTIONS } from "@/lib/labels";
 import { LoadingState } from "@/components/LoadingState";
 import { ErrorState } from "@/components/ErrorState";
 
@@ -30,22 +30,23 @@ export default function CandidateDetailPage() {
   const [noteError, setNoteError] = useState<string | null>(null);
   const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
 
-  const fetchAll = useCallback(() => {
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     setError(null);
-    Promise.all([api.getCandidate(id), api.listNotes(id)])
-      .then(([candidateRes, notesRes]) => {
-        setCandidate(candidateRes);
-        setNotes(notesRes.data);
-      })
-      .catch((err) =>
-        setError(err instanceof Error ? err.message : "Could not load this candidate.")
-      )
-      .finally(() => setLoading(false));
+    try {
+      const [candidateRes, notesRes] = await Promise.all([api.getCandidate(id), api.listNotes(id)]);
+      setCandidate(candidateRes);
+      setNotes(notesRes.data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not load this candidate.");
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   useEffect(() => {
-    fetchAll();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchAll();
   }, [fetchAll]);
 
   async function handleStatusChange(value: StatusValue) {
@@ -129,24 +130,26 @@ export default function CandidateDetailPage() {
         ← Back to pipeline
       </Link>
 
-      <div className="flex items-start justify-between mt-4 mb-6">
+      <div className="flex items-start justify-between gap-4 mt-4 mb-6">
         <div>
           <h1 className="text-xl font-semibold">{candidate.full_name}</h1>
           <p className="text-sm text-gray-500">{candidate.position}</p>
         </div>
-        <Link
-          href={`/candidates/${candidate.id}/edit`}
-          className="border text-sm font-medium px-4 py-2 rounded-md"
-        >
-          Edit candidate
-        </Link>
-        <button
-          onClick={handleDeleteCandidate}
-          disabled={deleting}
-          className="border border-red-300 text-red-600 text-sm font-medium px-4 py-2 rounded-md disabled:opacity-50"
-        >
-          {deleting ? "Deleting…" : "Delete candidate"}
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href={`/candidates/${candidate.id}/edit`}
+            className="border text-sm font-medium px-4 py-2 rounded-md"
+          >
+            Edit candidate
+          </Link>
+          <button
+            onClick={handleDeleteCandidate}
+            disabled={deleting}
+            className="border border-red-300 text-red-600 text-sm font-medium px-4 py-2 rounded-md disabled:opacity-50"
+          >
+            {deleting ? "Deleting…" : "Delete candidate"}
+          </button>
+        </div>
       </div>
 
       {/* Fields */}

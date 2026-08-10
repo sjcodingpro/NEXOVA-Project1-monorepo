@@ -19,18 +19,22 @@ export default function EditCandidatePage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const fetchCandidate = useCallback(() => {
+  const fetchCandidate = useCallback(async () => {
     setLoading(true);
     setError(null);
-    api
-      .getCandidate(id)
-      .then(setCandidate)
-      .catch((err) => setError(err instanceof Error ? err.message : "Could not load candidate."))
-      .finally(() => setLoading(false));
+    try {
+      const data = await api.getCandidate(id);
+      setCandidate(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not load candidate.");
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   useEffect(() => {
-    fetchCandidate();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchCandidate();
   }, [fetchCandidate]);
 
   async function handleUpdate(payload: CreateCandidatePayload) {
@@ -42,7 +46,7 @@ export default function EditCandidatePage() {
   }
 
   if (loading) return <LoadingState label="Loading candidate…" />;
-  if (error) return <ErrorState message={error} onRetry={fetchCandidate} />;
+  if (error) return <ErrorState message={error} onRetry={() => void fetchCandidate()} />;
   if (!candidate) return null;
 
   const initialValues: CreateCandidatePayload = {
