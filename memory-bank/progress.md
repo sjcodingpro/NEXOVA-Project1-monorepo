@@ -54,7 +54,7 @@
       real on uis/backoffice
 - [x] `uis/backoffice/` — new app, own layout, `/` entry view, real
       Nexova data visible on screen
-- [ ] Run the AGENTS.md delivery workflow before final commit
+- [x] Run the AGENTS.md delivery workflow before final commit
 - [ ] Open PR from `feature/agent-memory-bank` → `main` with required
       screenshots + AGENTS.md link
 
