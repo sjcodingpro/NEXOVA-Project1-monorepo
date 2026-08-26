@@ -21,20 +21,39 @@
   async/await (no `.then`/`.catch` chains).
 - Pushed to `main` and merged.
 
+### uis/backoffice
+- New minimal internal app: Next.js App Router + TypeScript + Tailwind,
+  own layout distinct from uis/website, entry view rendering a real
+  company snapshot (founding year, headcount, revenue, both office
+  locations, all three business lines) sourced from CONTEXT.md.
+- Clean production build.
+- Scaffolded using the `.agents/skills/scaffold-uis-app` skill — first
+  real use of that skill, confirming its steps actually work end to
+  end (install, README, build verification).
+- Gotcha hit and fixed: the Tailwind v4 create-next-app scaffold ships
+  an unlayered `body { background; color; }` rule in `globals.css`
+  that overrides Tailwind utility classes applied to `<body>`
+  regardless of specificity, because it sits outside any `@layer`.
+  Fix: remove the scaffold's hardcoded body styling and control body
+  appearance via Tailwind classes in `layout.tsx` instead. Worth
+  checking for on any future Next.js + Tailwind v4 scaffold in this
+  repo.
+
 ## In progress (this milestone — agent infrastructure)
 
 - [x] `CONTEXT.md` confirmed as the real Nexova briefing (not the
       template placeholder) — no action needed, already correct.
 - [x] `memory-bank/projectbrief.md` — business context
 - [x] `memory-bank/techContext.md` — technical context
-- [ ] `memory-bank/progress.md` — this file, keep updating as work
-      continues
-- [ ] `AGENTS.md` at repo root — mandatory read list, ≥4-step pre-commit
+- [x] `memory-bank/progress.md` — this file, kept updated as work
+      progressed
+- [x] `AGENTS.md` at repo root — mandatory read list, 6-step pre-commit
       workflow, do-not-touch list
-- [ ] `.agents/rules/` — at least one scoped rule
-- [ ] `.agents/skills/<skill>/SKILL.md` — at least one verifiable skill
-- [ ] `uis/backoffice/` — new app, own layout, `/` entry view, at least
-      one real piece of Nexova data visible on screen
+- [x] `.agents/rules/` — no-raw-api-values-in-ui.md
+- [x] `.agents/skills/<skill>/SKILL.md` — scaffold-uis-app, used for
+      real on uis/backoffice
+- [x] `uis/backoffice/` — new app, own layout, `/` entry view, real
+      Nexova data visible on screen
 - [ ] Run the AGENTS.md delivery workflow before final commit
 - [ ] Open PR from `feature/agent-memory-bank` → `main` with required
       screenshots + AGENTS.md link
