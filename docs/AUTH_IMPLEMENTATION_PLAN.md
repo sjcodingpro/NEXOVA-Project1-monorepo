@@ -11,7 +11,7 @@ since each depends on the last.
       without a token, 5 newly-protected routes correctly reject
       unauthenticated calls)
 - [x] AUTH-02 (feature/auth-frontend) — frontend complete, verified end-to-end in the browser (redirect-when-logged-out, register->auto-login, nav updates, protected supplier data loads with token, logout works)
-- [ ] AUTH-03 (feature/password-reset) — not started
+- [x] AUTH-03 (feature/password-reset) — complete, verified end-to-end with a real Resend email; caught and fixed a real bug in apiFetch's global 401 handler along the way
 
 ## Build order
 
