@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { getMe, updateMyProfile, MeResponse } from "@/lib/auth-api";
 import { logout } from "@/lib/auth";
 
@@ -77,6 +78,12 @@ export default function ProfilePage() {
       </div>
 
       <p className="text-slate-400 text-sm mt-2">{me.email}</p>
+      <Link
+        href="/account/change-password"
+        className="text-sm text-slate-400 hover:text-slate-200 underline inline-block mt-1"
+      >
+        Change password
+      </Link>
 
       <form onSubmit={handleSave} className="space-y-4 mt-8">
         <div>

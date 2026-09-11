@@ -1,3 +1,11 @@
+from dotenv import load_dotenv
+
+# Must run before any of the app.* imports below -- several of them
+# (app.auth.security in particular) read environment variables at
+# module-import time, so .env has to be loaded first or those reads
+# silently fall back to their defaults instead.
+load_dotenv()
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -9,9 +17,6 @@ from app.profiles.router import router as profiles_router
 
 app = FastAPI(title="Nexova API", version="0.1.0")
 
-# Allow the independently-deployed Nexova frontends to call this API.
-# See docs/ARCHITECTURE_PROPOSAL.md section 5: explicit origins, not a
-# wildcard, since this API handles sensitive incident/customer data.
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"http://localhost:\d+",

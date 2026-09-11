@@ -49,16 +49,26 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   }
 
   if (res.status === 401) {
-    clearToken();
-    if (typeof window !== "undefined") {
-      // A full navigation (not router.push) is intentional here: this
-      // runs from plain utility code with no access to useRouter, and
-      // a hard reload also guarantees any stale in-memory app state
-      // from the expired session is discarded.
-      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-      window.location.href = "/login";
+    if (token) {
+      // We believed we had an active session (a token was attached),
+      // but the server disagrees -- this is a real session-expiry
+      // case. Clear it and force a re-login.
+      clearToken();
+      if (typeof window !== "undefined") {
+        // A full navigation (not router.push) is intentional here:
+        // this runs from plain utility code with no access to
+        // useRouter, and a hard reload also guarantees any stale
+        // in-memory app state from the expired session is discarded.
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+        window.location.href = "/login";
+      }
+      throw new Error("Session expired. Please log in again.");
     }
-    throw new Error("Session expired. Please log in again.");
+    // No token was ever attached -- e.g. a login attempt with the
+    // wrong password, or forgot/reset-password. A 401 here is a
+    // normal API-level failure, not a session expiring, so it should
+    // surface as a regular error message instead.
+    throw new Error(await parseErrorDetail(res));
   }
 
   if (!res.ok) {
