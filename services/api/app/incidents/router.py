@@ -5,9 +5,10 @@ POST /api/incidents/analyze        -- upload a CSV, get the summary as JSON
 GET  /api/incidents/results/export -- download the most recent analysis as CSV
 """
 
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from fastapi.responses import Response
 
+from app.auth.security import get_current_user
 from app.incidents import logic
 
 router = APIRouter(prefix="/api/incidents", tags=["incidents"])
@@ -19,7 +20,7 @@ _last_summary = None
 
 
 @router.post("/analyze")
-async def analyze_incidents(file: UploadFile = File(...)):
+async def analyze_incidents(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     global _last_summary
 
     if not file.filename or not file.filename.lower().endswith(".csv"):

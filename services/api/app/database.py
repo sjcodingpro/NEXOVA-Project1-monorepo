@@ -16,3 +16,11 @@ db = TinyDB(DB_PATH)
 
 def get_suppliers_table():
     return db.table("suppliers")
+
+
+def get_users_table():
+    return db.table("users")
+
+
+def get_profiles_table():
+    return db.table("profiles")
