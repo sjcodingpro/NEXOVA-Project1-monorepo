@@ -69,3 +69,31 @@ export function updateMyProfile(payload: {
     body: JSON.stringify(payload),
   });
 }
+
+export interface MessageResponse {
+  message: string;
+}
+
+export function forgotPassword(email: string): Promise<MessageResponse> {
+  return apiFetch<MessageResponse>("/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function resetPassword(token: string, new_password: string): Promise<MessageResponse> {
+  return apiFetch<MessageResponse>("/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ token, new_password }),
+  });
+}
+
+export function changePassword(
+  current_password: string,
+  new_password: string
+): Promise<MessageResponse> {
+  return apiFetch<MessageResponse>("/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ current_password, new_password }),
+  });
+}

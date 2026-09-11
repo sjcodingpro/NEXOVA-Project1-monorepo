@@ -1,13 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/lib/auth-api";
 import { setToken } from "@/lib/auth";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const resetSuccess = searchParams.get("reset") === "success";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -32,6 +35,12 @@ export default function LoginPage() {
     <div className="max-w-sm mx-auto px-6 py-16">
       <h1 className="text-2xl font-semibold">Log in</h1>
       <p className="text-slate-400 text-sm mt-2">Nexova Backoffice</p>
+
+      {resetSuccess && (
+        <div className="mt-6 border border-emerald-900 bg-emerald-950/50 text-emerald-300 text-sm rounded-md px-4 py-3">
+          Your password has been reset. Log in with your new password.
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4 mt-8">
         <div>
@@ -69,12 +78,29 @@ export default function LoginPage() {
           {submitting ? "Logging in..." : "Log in"}
         </button>
 
-        <div className="text-sm">
+        <div className="flex justify-between text-sm">
           <Link href="/register" className="text-slate-400 hover:text-slate-200">
             Create an account
+          </Link>
+          <Link href="/forgot-password" className="text-slate-400 hover:text-slate-200">
+            Forgot your password?
           </Link>
         </div>
       </form>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-sm mx-auto px-6 py-16 text-sm text-slate-400">
+          Loading...
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
