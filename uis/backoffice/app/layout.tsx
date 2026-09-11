@@ -33,7 +33,9 @@ export default function RootLayout({
                 <Link href="/incidents" className="text-slate-300 hover:text-white">
                   Incident Analysis
                 </Link>
-              </nav>
+                <Link href="/suppliers" className="text-slate-300 hover:text-white">
+                  Suppliers
+                </Link>              </nav>
             </div>
           </header>
           <main className="flex-1">{children}</main>
