@@ -10,7 +10,7 @@ since each depends on the last.
       against a running server (registration, login, /auth/me with and
       without a token, 5 newly-protected routes correctly reject
       unauthenticated calls)
-- [ ] AUTH-02 (feature/auth-frontend) — not started
+- [x] AUTH-02 (feature/auth-frontend) — frontend complete, verified end-to-end in the browser (redirect-when-logged-out, register->auto-login, nav updates, protected supplier data loads with token, logout works)
 - [ ] AUTH-03 (feature/password-reset) — not started
 
 ## Build order
