@@ -4,6 +4,7 @@ get_current_user dependency used to protect routes.
 """
 
 import os
+import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -61,26 +62,34 @@ def decode_token(token: str) -> dict:
 def create_reset_token(user_id: int) -> str:
     """A short-lived, single-purpose token for the password reset flow.
     Distinct 'type' claim from access tokens so one can never be used
-    in place of the other."""
+    in place of the other. Carries a random 'jti' so this specific
+    token (not just "any token issued around this time") can be
+    marked used after a single successful reset."""
     now = datetime.now(timezone.utc)
     payload = {
         "sub": str(user_id),
         "type": "reset",
+        "jti": secrets.token_urlsafe(16),
         "iat": now,
         "exp": now + timedelta(minutes=RESET_TOKEN_EXPIRE_MINUTES),
     }
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 
-def validate_reset_token(token: str, user: dict) -> Optional[int]:
-    """Returns the user_id if the token is a valid, not-yet-used reset
+def validate_reset_token(token: str, user: dict) -> Optional[str]:
+    """Returns the token's jti if it's a valid, not-yet-used reset
     token for this user; otherwise None.
 
     A JWT exp claim alone can't be invalidated after a single use, so
-    this also checks the token's issued-at time against the user's
-    password_changed_at: a token issued before the last password
-    change (including a change made by using this very token) is
-    treated as already used.
+    this also checks the token's unique jti against the user's
+    last_used_reset_jti -- once a specific token has been used to
+    reset the password, that exact jti is recorded, and any later
+    attempt to reuse the same token is rejected. (Comparing timestamps
+    instead of an explicit per-token id was tried first, but a JWT's
+    iat is truncated to whole seconds while stored timestamps carry
+    microseconds, which caused incorrect rejections/acceptances for
+    tokens issued or reused within the same second -- an explicit jti
+    has no such ambiguity.)
     """
     try:
         payload = decode_token(token)
@@ -102,18 +111,14 @@ def validate_reset_token(token: str, user: dict) -> Optional[int]:
     if user_id != user.get("id"):
         return None
 
-    token_iat = payload.get("iat")
-    if token_iat is None:
+    jti = payload.get("jti")
+    if not jti:
         return None
 
-    password_changed_at_raw = user.get("password_changed_at")
-    if password_changed_at_raw:
-        password_changed_at = datetime.fromisoformat(password_changed_at_raw)
-        token_issued_at = datetime.fromtimestamp(token_iat, tz=timezone.utc)
-        if token_issued_at <= password_changed_at:
-            return None
+    if jti == user.get("last_used_reset_jti"):
+        return None
 
-    return user_id
+    return jti
 
 
 # --- get_current_user dependency --------------------------------------------

@@ -95,15 +95,20 @@ def delete_user(user_id: int) -> bool:
     return True
 
 
-def bump_password_changed_at(user_id: int, new_hashed_password: str) -> None:
-    """Used by change-password and reset-password (project 3) --
-    updating this timestamp is what invalidates any outstanding
-    reset tokens issued before this moment."""
+def bump_password_changed_at(
+    user_id: int, new_hashed_password: str, used_reset_jti: Optional[str] = None
+) -> None:
+    """Used by both change-password and reset-password to actually
+    apply a new password. When called from reset-password, also
+    records that specific token's jti as used, so it can never be
+    replayed -- see validate_reset_token for why an explicit jti is
+    used instead of comparing timestamps."""
     table = get_users_table()
-    table.update(
-        {
-            "hashed_password": new_hashed_password,
-            "password_changed_at": datetime.now(timezone.utc).isoformat(),
-        },
-        doc_ids=[user_id],
-    )
+    updates = {
+        "hashed_password": new_hashed_password,
+        "password_changed_at": datetime.now(timezone.utc).isoformat(),
+    }
+    if used_reset_jti is not None:
+        updates["last_used_reset_jti"] = used_reset_jti
+
+    table.update(updates, doc_ids=[user_id])

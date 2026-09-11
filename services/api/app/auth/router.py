@@ -107,11 +107,12 @@ async def reset_password(payload: ResetPasswordRequest):
     if user is None:
         raise invalid_token
 
-    if validate_reset_token(payload.token, user) is None:
+    jti = validate_reset_token(payload.token, user)
+    if jti is None:
         raise invalid_token
 
     new_hashed = hash_password(payload.new_password)
-    users_service.bump_password_changed_at(user_id, new_hashed)
+    users_service.bump_password_changed_at(user_id, new_hashed, used_reset_jti=jti)
 
     return {"message": "Password has been reset successfully."}
 
