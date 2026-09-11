@@ -10,6 +10,8 @@ dependencies = [
     "pydantic[email]==2.9.2",
     "python-jose[cryptography]>=3.5.0",
     "libpass[bcrypt]>=1.9.3",
+    "resend>=2.44.0",
+    "python-dotenv>=1.2.3",
 ]
 
 [project.scripts]
