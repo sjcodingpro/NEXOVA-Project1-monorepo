@@ -5,8 +5,9 @@ Supplier directory endpoints.
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
+from app.auth.security import get_current_user
 from app.database import get_suppliers_table
 from app.suppliers.models import (
     Supplier,
@@ -25,7 +26,7 @@ def _row_to_supplier(doc) -> dict:
 
 
 @router.post("", response_model=Supplier, status_code=201)
-async def create_supplier(payload: SupplierCreate):
+async def create_supplier(payload: SupplierCreate, current_user: dict = Depends(get_current_user)):
     table = get_suppliers_table()
     record = payload.model_dump(mode="json")
     record["updated_at"] = datetime.now(timezone.utc).isoformat()
@@ -62,7 +63,7 @@ async def get_supplier(supplier_id: int):
 
 
 @router.patch("/{supplier_id}/rate", response_model=Supplier)
-async def update_rate(supplier_id: int, payload: SupplierRateUpdate):
+async def update_rate(supplier_id: int, payload: SupplierRateUpdate, current_user: dict = Depends(get_current_user)):
     table = get_suppliers_table()
     doc = table.get(doc_id=supplier_id)
     if doc is None:
@@ -77,7 +78,7 @@ async def update_rate(supplier_id: int, payload: SupplierRateUpdate):
 
 
 @router.patch("/{supplier_id}/status", response_model=Supplier)
-async def update_status(supplier_id: int, payload: SupplierStatusUpdate):
+async def update_status(supplier_id: int, payload: SupplierStatusUpdate, current_user: dict = Depends(get_current_user)):
     table = get_suppliers_table()
     doc = table.get(doc_id=supplier_id)
     if doc is None:
@@ -88,7 +89,7 @@ async def update_status(supplier_id: int, payload: SupplierStatusUpdate):
 
 
 @router.delete("/{supplier_id}", status_code=204)
-async def delete_supplier(supplier_id: int):
+async def delete_supplier(supplier_id: int, current_user: dict = Depends(get_current_user)):
     table = get_suppliers_table()
     doc = table.get(doc_id=supplier_id)
     if doc is None:

@@ -3,6 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.incidents.router import router as incidents_router
 from app.suppliers.router import router as suppliers_router
+from app.auth.router import router as auth_router
+from app.users.router import router as users_router
+from app.profiles.router import router as profiles_router
+
 app = FastAPI(title="Nexova API", version="0.1.0")
 
 # Allow the independently-deployed Nexova frontends to call this API.
@@ -18,6 +22,10 @@ app.add_middleware(
 
 app.include_router(incidents_router)
 app.include_router(suppliers_router)
+app.include_router(auth_router)
+app.include_router(users_router)
+app.include_router(profiles_router)
+
 
 @app.get("/")
 async def root():
