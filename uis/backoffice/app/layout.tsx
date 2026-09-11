@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import NavAuthLinks from "@/components/NavAuthLinks";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -35,7 +36,9 @@ export default function RootLayout({
                 </Link>
                 <Link href="/suppliers" className="text-slate-300 hover:text-white">
                   Suppliers
-                </Link>              </nav>
+                </Link>
+                <NavAuthLinks />
+              </nav>
             </div>
           </header>
           <main className="flex-1">{children}</main>
