@@ -24,3 +24,7 @@ def get_users_table():
 
 def get_profiles_table():
     return db.table("profiles")
+
+
+def get_incidents_table():
+    return db.table("incidents")
