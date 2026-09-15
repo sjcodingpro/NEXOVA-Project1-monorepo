@@ -232,6 +232,13 @@
   }
 
   function updateCommentsCounter() {
+    // M7: commentsCount was used with no null guard. A missing/renamed
+    // #comments-count element would throw here, inside an `input`
+    // handler -- not fatal to the whole script (each DOM event handler
+    // fails independently), but it would silently break the character
+    // counter on every keystroke. Guarded for consistency with the
+    // fix below.
+    if (!commentsCount) return;
     const remaining = COMMENTS_MAX - fields.comments.value.length;
     commentsCount.textContent = `${remaining} characters remaining`;
   }
@@ -281,21 +288,15 @@
 
   fields.consent.addEventListener('change', runConsent);
 
-  clearBtn.addEventListener('click', () => {
-    form.reset();
-
-    Object.entries(fields).forEach(([key, el]) => {
-      if (!el) return;
-      const id = el.id;
-      showFieldError(id, null, el);
-    });
-    setGroupError(null);
-    summaryError.classList.add('hidden');
-    summaryError.hidden = true;
-    updateCommentsCounter();
-    fields.fullName.focus();
-  });
-
+  // M7: this submit registration is now deliberately placed *before* the
+  // clearBtn block below. Previously it came after an unguarded
+  // clearBtn.addEventListener(...) call -- if #clear-form was missing or
+  // renamed, that line threw and execution of this IIFE stopped right
+  // there, so the submit listener below it was never attached at all.
+  // The form then fell back to its native (GET) submission on the next
+  // click, silently discarding every field the applicant had typed.
+  // Registering submit first means that failure mode is no longer
+  // possible regardless of what happens further down this script.
   form.addEventListener('submit', (event) => {
     event.preventDefault();
 
@@ -316,23 +317,53 @@
     const firstInvalid = results.find((r) => r.msg);
 
     if (firstInvalid) {
-      summaryError.textContent = 'Please review the highlighted fields before submitting.';
-      summaryError.classList.remove('hidden');
-      summaryError.hidden = false;
+      // M7: summaryError guarded -- if #form-summary-error is missing,
+      // validation itself (the per-field errors above) still ran and
+      // still blocked submission; only this summary banner is skipped.
+      if (summaryError) {
+        summaryError.textContent = 'Please review the highlighted fields before submitting.';
+        summaryError.classList.remove('hidden');
+        summaryError.hidden = false;
+      }
       if (firstInvalid.el && typeof firstInvalid.el.focus === 'function') {
         firstInvalid.el.focus();
       }
       return;
     }
 
-    summaryError.classList.add('hidden');
-    summaryError.hidden = true;
+    if (summaryError) {
+      summaryError.classList.add('hidden');
+      summaryError.hidden = true;
+    }
 
     formSection.classList.add('hidden');
     successPanel.classList.remove('hidden');
     successFocus.focus();
     successPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
+
+  // M7: clearBtn's own listener registration is now guarded and comes
+  // after the submit handler above, so a missing #clear-form only means
+  // the "clear form" button doesn't work -- it can no longer take the
+  // whole form down with it.
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      form.reset();
+
+      Object.entries(fields).forEach(([key, el]) => {
+        if (!el) return;
+        const id = el.id;
+        showFieldError(id, null, el);
+      });
+      setGroupError(null);
+      if (summaryError) {
+        summaryError.classList.add('hidden');
+        summaryError.hidden = true;
+      }
+      updateCommentsCounter();
+      fields.fullName.focus();
+    });
+  }
 
   updateCommentsCounter();
 })();

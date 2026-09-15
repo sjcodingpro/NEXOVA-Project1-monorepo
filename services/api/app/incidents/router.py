@@ -17,10 +17,13 @@ API (users, profiles, suppliers) and this same router's existing /analyze
 endpoint.
 """
 
+import csv
+import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from fastapi.responses import Response
+from pydantic import ValidationError
 
 from app.auth.security import get_current_user
 from app.incidents import logic, service
@@ -30,11 +33,17 @@ from app.incidents.models import (
     IncidentCreate,
     IncidentOut,
     IncidentStatusUpdate,
+    InvalidTransitionError,
     Origin,
     Status,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/incidents", tags=["incidents"])
+
+# H7: caps how much of an upload we ever hold in memory at once.
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
 
 # In-memory store for "the last analysis" -- sufficient for this milestone's
 # scope (no persistence layer required). A future milestone could persist
@@ -52,7 +61,16 @@ async def analyze_incidents(file: UploadFile = File(...), current_user: dict = D
             detail="Uploaded file must be a .csv file.",
         )
 
-    raw = await file.read()
+    # H7: file.read() with no argument pulls the entire upload into
+    # memory regardless of size. Reading one byte past the cap lets us
+    # detect an oversized upload without ever holding more than
+    # MAX_UPLOAD_BYTES + 1 bytes in memory at once.
+    raw = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(raw) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=413,
+            detail=f"CSV file is too large (max {MAX_UPLOAD_BYTES // (1024 * 1024)} MB).",
+        )
     if not raw:
         raise HTTPException(status_code=400, detail="Uploaded file is empty.")
 
@@ -64,7 +82,13 @@ async def analyze_incidents(file: UploadFile = File(...), current_user: dict = D
             detail="Uploaded file must be UTF-8 encoded text.",
         )
 
-    rows = logic.load_rows_from_text(text)
+    # H7: load_rows_from_text was called bare -- a malformed CSV (NUL
+    # bytes, a field exceeding csv's field-size limit) raised csv.Error
+    # as an unhandled 500 instead of a clean 400.
+    try:
+        rows = logic.load_rows_from_text(text)
+    except csv.Error:
+        raise HTTPException(status_code=400, detail="Could not parse the CSV.")
     if not rows:
         raise HTTPException(
             status_code=400,
@@ -84,7 +108,7 @@ async def analyze_incidents(file: UploadFile = File(...), current_user: dict = D
 
 
 @router.get("/results/export")
-async def export_results():
+async def export_results(current_user: dict = Depends(get_current_user)):
     if _last_summary is None:
         raise HTTPException(
             status_code=404,
@@ -131,7 +155,18 @@ async def list_incidents(
     incidents = service.list_incidents(
         status=status, origin=origin, branch=branch, category=category
     )
-    return [IncidentOut(**i) for i in incidents]
+    # M13: a single malformed row (hand-edited DB, or a record predating
+    # a schema change) previously 500'd this entire endpoint via an
+    # unhandled pydantic ValidationError from IncidentOut(**i). Validate
+    # per-row instead -- one bad record is skipped and logged rather than
+    # taking down the whole register.
+    result: list[IncidentOut] = []
+    for i in incidents:
+        try:
+            result.append(IncidentOut(**i))
+        except ValidationError:
+            logger.warning("Skipping malformed incident row id=%s", i.get("id"))
+    return result
 
 
 @router.get("/{incident_id}", response_model=IncidentOut)
@@ -150,8 +185,16 @@ async def update_incident_status(
 ):
     try:
         updated = service.update_incident_status(incident_id, payload.status)
-    except ValueError as exc:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    except InvalidTransitionError as exc:
+        # M16: builds the client message from the exception's own
+        # structured current/target fields rather than forwarding
+        # str(exc) directly -- see InvalidTransitionError's docstring
+        # in models.py for why that distinction matters even though
+        # today's message content is safe either way.
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot move an incident from '{exc.current}' to '{exc.target}'.",
+        )
 
     if updated is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incident not found.")

@@ -9,6 +9,7 @@ Usage:
     uv run seed
 """
 
+import sys
 from datetime import datetime, timezone
 
 from app.database import get_suppliers_table
@@ -174,23 +175,44 @@ SUPPLIERS_SEED = [
 ]
 
 
-def main():
-    table = get_suppliers_table()
-    existing_names = {row["name"] for row in table.all()}
+def main() -> int:
+    # M11: get_suppliers_table() (and TinyDB underneath it) had no guard
+    # at all -- a DB problem here previously surfaced as a raw traceback.
+    try:
+        table = get_suppliers_table()
+        existing_names = {row.get("name") for row in table.all() if row.get("name")}
+    except Exception as exc:
+        print(f"ERROR: could not access the suppliers table: {type(exc).__name__}: {exc}", file=sys.stderr)
+        return 1
 
     inserted = 0
     for raw in SUPPLIERS_SEED:
         if raw["name"] in existing_names:
             continue
-        validated = SupplierCreate(**raw)
-        record = validated.model_dump(mode="json")
-        record["updated_at"] = datetime.now(timezone.utc).isoformat()
-        table.insert(record)
-        inserted += 1
+        # M11: previously nothing in this loop body was guarded, and the
+        # script had no explicit exit code at all -- a bad record (e.g.
+        # SupplierCreate validation failure) or a mid-loop DB error would
+        # either crash with a raw traceback or, if somehow swallowed
+        # upstream, leave the database partially seeded with no way for
+        # the operator to know which suppliers actually landed.
+        try:
+            validated = SupplierCreate(**raw)
+            record = validated.model_dump(mode="json")
+            record["updated_at"] = datetime.now(timezone.utc).isoformat()
+            table.insert(record)
+            inserted += 1
+        except Exception as exc:
+            print(
+                f"ERROR: failed to insert supplier '{raw.get('name', '<unknown>')}', aborting. "
+                f"{inserted} supplier(s) were committed before this failure. ({type(exc).__name__})",
+                file=sys.stderr,
+            )
+            return 1
 
     total = len(table.all())
     print(f"Seeder finished: {inserted} supplier(s) inserted, {total} total in database.")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

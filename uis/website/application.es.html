@@ -376,14 +376,18 @@
   const iconOpen = document.getElementById('icon-open');
   const iconClose = document.getElementById('icon-close');
 
-  menuToggle.addEventListener('click', () => {
-    const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
-    menuToggle.setAttribute('aria-expanded', String(!isOpen));
-    menuToggle.setAttribute('aria-label', isOpen ? 'Abrir menú' : 'Cerrar menú');
-    mobileMenu.classList.toggle('hidden');
-    iconOpen.classList.toggle('hidden');
-    iconClose.classList.toggle('hidden');
-  });
+  // M8: menuToggle.addEventListener had no null guard -- see index.html
+  // for the full explanation. Same fix here.
+  if (menuToggle) {
+    menuToggle.addEventListener('click', () => {
+      const isOpen = menuToggle.getAttribute('aria-expanded') === 'true';
+      menuToggle.setAttribute('aria-expanded', String(!isOpen));
+      menuToggle.setAttribute('aria-label', isOpen ? 'Abrir menú' : 'Cerrar menú');
+      if (mobileMenu) mobileMenu.classList.toggle('hidden');
+      if (iconOpen) iconOpen.classList.toggle('hidden');
+      if (iconClose) iconClose.classList.toggle('hidden');
+    });
+  }
 </script>
 
 <script src="validation.es.js" defer></script>

@@ -246,6 +246,9 @@
   }
 
   function updateCommentsCounter() {
+    // M7: commentsCount was used with no null guard -- see validation.js
+    // for the full explanation. Guarded here for the same reason.
+    if (!commentsCount) return;
     const remaining = COMMENTS_MAX - fields.comments.value.length;
     commentsCount.textContent = `Quedan ${remaining} caracteres`;
   }
@@ -300,26 +303,17 @@
   fields.consent.addEventListener('change', runConsent);
 
   // ---------------------------------------------------------------------
-  // Limpiar formulario
-  // ---------------------------------------------------------------------
-
-  clearBtn.addEventListener('click', () => {
-    form.reset();
-
-    Object.entries(fields).forEach(([key, el]) => {
-      if (!el) return;
-      const id = el.id;
-      showFieldError(id, null, el);
-    });
-    setGroupError(null);
-    summaryError.classList.add('hidden');
-    summaryError.hidden = true;
-    updateCommentsCounter();
-    fields.fullName.focus();
-  });
-
-  // ---------------------------------------------------------------------
   // Envío
+  //
+  // M7: this is now registered *before* the "Limpiar formulario" block
+  // below. Previously it came after an unguarded
+  // clearBtn.addEventListener(...) call -- if #clear-form was missing or
+  // renamed, that line threw and execution of this IIFE stopped right
+  // there, so the submit listener was never attached at all. The form
+  // then fell back to its native (GET) submission on the next click,
+  // silently discarding every field the applicant had typed. Registering
+  // submit first means that failure mode is no longer possible
+  // regardless of what happens further down this script.
   // ---------------------------------------------------------------------
 
   form.addEventListener('submit', (event) => {
@@ -342,17 +336,24 @@
     const firstInvalid = results.find((r) => r.msg);
 
     if (firstInvalid) {
-      summaryError.textContent = 'Por favor, revisa los campos marcados antes de enviar el formulario.';
-      summaryError.classList.remove('hidden');
-      summaryError.hidden = false;
+      // M7: summaryError guarded -- if #form-summary-error is missing,
+      // per-field validation above still ran and still blocked
+      // submission; only this summary banner is skipped.
+      if (summaryError) {
+        summaryError.textContent = 'Por favor, revisa los campos marcados antes de enviar el formulario.';
+        summaryError.classList.remove('hidden');
+        summaryError.hidden = false;
+      }
       if (firstInvalid.el && typeof firstInvalid.el.focus === 'function') {
         firstInvalid.el.focus();
       }
       return;
     }
 
-    summaryError.classList.add('hidden');
-    summaryError.hidden = true;
+    if (summaryError) {
+      summaryError.classList.add('hidden');
+      summaryError.hidden = true;
+    }
 
     // Simulación de envío: sin backend todavía, solo mostramos el estado de éxito.
     formSection.classList.add('hidden');
@@ -360,6 +361,33 @@
     successFocus.focus();
     successPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
+
+  // ---------------------------------------------------------------------
+  // Limpiar formulario
+  //
+  // M7: registration guarded and moved after the submit handler above,
+  // so a missing #clear-form only means the "clear form" button doesn't
+  // work -- it can no longer take the whole form down with it.
+  // ---------------------------------------------------------------------
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      form.reset();
+
+      Object.entries(fields).forEach(([key, el]) => {
+        if (!el) return;
+        const id = el.id;
+        showFieldError(id, null, el);
+      });
+      setGroupError(null);
+      if (summaryError) {
+        summaryError.classList.add('hidden');
+        summaryError.hidden = true;
+      }
+      updateCommentsCounter();
+      fields.fullName.focus();
+    });
+  }
 
   // ---------------------------------------------------------------------
   // Inicialización

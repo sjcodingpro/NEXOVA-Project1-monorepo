@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
@@ -18,6 +18,15 @@ export default function EditCandidatePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  // L3: same fix as candidates/new/page.tsx -- this timer was never
+  // cleared on unmount.
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimer.current) clearTimeout(redirectTimer.current);
+    };
+  }, []);
 
   const fetchCandidate = useCallback(async () => {
     setLoading(true);
@@ -40,14 +49,25 @@ export default function EditCandidatePage() {
   async function handleUpdate(payload: CreateCandidatePayload) {
     await api.updateCandidate(id, payload);
     setSuccess(true);
-    setTimeout(() => {
+    redirectTimer.current = setTimeout(() => {
       router.push(`/candidates/${id}`);
     }, 800);
   }
 
   if (loading) return <LoadingState label="Loading candidate…" />;
   if (error) return <ErrorState message={error} onRetry={() => void fetchCandidate()} />;
-  if (!candidate) return null;
+  if (!candidate) {
+    // M5: same fix as candidates/[id]/page.tsx -- this previously
+    // rendered a blank page with no explanation.
+    return (
+      <main className="max-w-lg mx-auto px-4 py-8">
+        <p className="text-sm text-gray-500 mb-4">Candidate not found.</p>
+        <Link href="/" className="text-sm text-blue-600 hover:underline">
+          ← Back to pipeline
+        </Link>
+      </main>
+    );
+  }
 
   const initialValues: CreateCandidatePayload = {
     full_name: candidate.full_name,

@@ -64,6 +64,21 @@ export default function ProfilePage() {
         <div className="border border-red-900 bg-red-950/50 text-red-300 text-sm rounded-md px-4 py-3">
           {error || "Could not load profile."}
         </div>
+        {/* M2: this error state previously had no way forward at all --
+            no retry, and no escape if the session itself is the
+            problem (e.g. a stale/invalid token that isn't quite
+            expired enough to trigger the 401 auto-redirect). */}
+        <div className="flex items-center gap-4 mt-4">
+          <button
+            onClick={() => void fetchMe()}
+            className="bg-slate-100 text-slate-900 text-sm font-medium px-4 py-2 rounded-md"
+          >
+            Retry
+          </button>
+          <button onClick={logout} className="text-sm text-slate-400 hover:text-slate-200">
+            Log out
+          </button>
+        </div>
       </div>
     );
   }

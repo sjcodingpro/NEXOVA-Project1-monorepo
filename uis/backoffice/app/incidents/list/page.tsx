@@ -218,8 +218,14 @@ export default function IncidentListPage() {
           </div>
         )}
         {rowError && (
-          <div className="mb-3 border border-red-900 bg-red-950/50 text-red-300 text-sm rounded-md px-4 py-3">
-            {rowError}
+          <div className="mb-3 border border-red-900 bg-red-950/50 text-red-300 text-sm rounded-md px-4 py-3 flex items-center justify-between">
+            <span>{rowError}</span>
+            {/* L1: this banner previously had no way to dismiss it --
+                it just sat there until the next status-change attempt
+                happened to replace or clear it. */}
+            <button onClick={() => setRowError(null)} className="text-slate-400 hover:text-slate-200 ml-4" aria-label="Dismiss">
+              &times;
+            </button>
           </div>
         )}
 
@@ -245,29 +251,44 @@ export default function IncidentListPage() {
               </thead>
               <tbody>
                 {incidents.map((incident) => {
-                  const nextOptions = NEXT_STATUS[incident.status];
+                  // H5: an unrecognized status value (e.g. a new status
+                  // added on the backend before this map is updated)
+                  // previously crashed the entire page here --
+                  // NEXT_STATUS[incident.status] was undefined, and
+                  // .length on undefined threw a TypeError. The fetch had
+                  // already succeeded and loading/error were both false,
+                  // so no existing state caught it -- the page
+                  // white-screened with no error boundary to fall back on.
+                  const nextOptions = NEXT_STATUS[incident.status] ?? [];
+                  const isKnownStatus = incident.status in NEXT_STATUS;
                   return (
                     <tr key={incident.id} className="border-b border-slate-900">
                       <td className="py-3 pr-4">{incident.title}</td>
-                      <td className="py-3 pr-4">{CATEGORY_LABELS[incident.category]}</td>
-                      <td className="py-3 pr-4">{ORIGIN_LABELS[incident.origin]}</td>
-                      <td className="py-3 pr-4">{BRANCH_LABELS[incident.branch]}</td>
+                      <td className="py-3 pr-4">{CATEGORY_LABELS[incident.category] ?? incident.category}</td>
+                      <td className="py-3 pr-4">{ORIGIN_LABELS[incident.origin] ?? incident.origin}</td>
+                      <td className="py-3 pr-4">{BRANCH_LABELS[incident.branch] ?? incident.branch}</td>
                       <td className="py-3 pr-4">
-                        <select
-                          value={incident.status}
-                          onChange={(e) =>
-                            handleStatusChange(incident, e.target.value as IncidentStatus)
-                          }
-                          disabled={nextOptions.length === 0}
-                          className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs"
-                        >
-                          <option value={incident.status}>{STATUS_LABELS[incident.status]}</option>
-                          {nextOptions.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {STATUS_LABELS[opt]}
-                            </option>
-                          ))}
-                        </select>
+                        {isKnownStatus ? (
+                          <select
+                            value={incident.status}
+                            onChange={(e) =>
+                              handleStatusChange(incident, e.target.value as IncidentStatus)
+                            }
+                            disabled={nextOptions.length === 0}
+                            className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs"
+                          >
+                            <option value={incident.status}>{STATUS_LABELS[incident.status]}</option>
+                            {nextOptions.map((opt) => (
+                              <option key={opt} value={opt}>
+                                {STATUS_LABELS[opt]}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span className="text-xs text-slate-500">
+                            {incident.status} (unrecognized status)
+                          </span>
+                        )}
                       </td>
                     </tr>
                   );

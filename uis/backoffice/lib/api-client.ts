@@ -1,9 +1,18 @@
 import { clearToken, getToken } from "@/lib/auth";
 
-const BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
-
-if (!BASE_URL) {
-  throw new Error("NEXT_PUBLIC_API_URL is not set. Check your .env.local.");
+function getBaseUrl(): string {
+  const url = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
+  if (!url) {
+    // H8: this used to throw at module import time. A module-level
+    // throw fires during hydration, not at build time as the previous
+    // comment claimed -- with no error boundary to catch it (see
+    // app/error.tsx), that crashed the whole page with a blank screen
+    // and no message. Throwing lazily, only when a request actually
+    // needs the URL, lets the error boundary catch it and show a real
+    // message instead.
+    throw new Error("NEXT_PUBLIC_API_URL is not set. Check your .env.local.");
+  }
+  return url;
 }
 
 interface ApiErrorBody {
@@ -32,6 +41,7 @@ async function parseErrorDetail(res: Response): Promise<string> {
  * need to handle that case themselves.
  */
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const baseUrl = getBaseUrl();
   const token = getToken();
   const isFormData = init?.body instanceof FormData;
 
@@ -43,7 +53,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}${path}`, { ...init, headers });
+    res = await fetch(`${baseUrl}${path}`, { ...init, headers });
   } catch {
     throw new Error("Could not reach the API. Is the server running?");
   }
@@ -79,9 +89,19 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     return undefined as T;
   }
 
-  return (await res.json()) as T;
+  // H3: the success path parsed the body with no guard, while the
+  // error path (parseErrorDetail above) carefully guards its own
+  // parse. A 2xx response carrying HTML (a proxy/gateway interstitial)
+  // or an empty body threw a raw SyntaxError straight out of this
+  // function, which every caller then rendered verbatim into its red
+  // error box.
+  try {
+    return (await res.json()) as T;
+  } catch {
+    throw new Error("Received an unexpected response from the server.");
+  }
 }
 
 export function apiBaseUrl(): string {
-  return BASE_URL;
+  return getBaseUrl();
 }

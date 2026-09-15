@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, HTTPException, Depends
+from pydantic import ValidationError
 
 from app.auth.security import get_current_user
 from app.database import get_suppliers_table
@@ -41,16 +42,32 @@ async def list_suppliers(
     table = get_suppliers_table()
     results = [_row_to_supplier(r) for r in table.all()]
 
+    # New finding (same class as M13 in incidents/router.py, found during
+    # a repo-wide sweep): a legacy/hand-edited row missing "country" or
+    # "categories" entirely raised an unhandled KeyError here, 500-ing
+    # the whole list for every filter, not just for that one row.
     if country:
-        results = [r for r in results if r["country"].lower() == country.lower()]
+        results = [r for r in results if (r.get("country") or "").lower() == country.lower()]
     if category:
         results = [
             r
             for r in results
-            if category.lower() in [c.lower() for c in r["categories"]]
+            if category.lower() in [c.lower() for c in r.get("categories", [])]
         ]
 
-    return results
+    # A malformed row surviving the filters above (or present at all,
+    # when no filter is applied) would otherwise 500 the *entire*
+    # response here anyway, via FastAPI's response_model=List[Supplier]
+    # validation -- the filter fix alone isn't sufficient. Validate
+    # per-row and skip anything that doesn't fit the model, same
+    # approach as M13.
+    validated: List[Supplier] = []
+    for r in results:
+        try:
+            validated.append(Supplier(**r))
+        except ValidationError:
+            continue
+    return validated
 
 
 @router.get("/{supplier_id}", response_model=Supplier)

@@ -24,12 +24,22 @@ VALID_CATEGORIES = ["TECHNICAL", "BILLING", "ACCESS", "HR_QUERY", "COMPLAINT"]
 VALID_STATUSES = ["OPEN", "CLOSED", "DISCARDED"]
 AGENT_ID_PATTERN = re.compile(r"^AGT-\d{2}$")
 
+# Mirrors services/api/app/incidents/logic.py's REQUIRED_COLUMNS -- the API
+# endpoint already rejects a CSV missing one of these (router.py); this
+# script had no equivalent check, which is what let a malformed file reach
+# analyze() and crash there instead of failing cleanly up front.
+REQUIRED_COLUMNS = [
+    "ticket_id", "date", "client_company", "category", "description",
+    "agent_id", "status", "customer_email", "satisfaction_score",
+]
+
 RULES = OrderedDict([
     ("missing_client_company", "Missing client_company"),
     ("invalid_category", "Invalid or missing category"),
     ("empty_description", "Empty or too-short description"),
     ("invalid_agent_id", "Missing or invalid agent_id"),
     ("invalid_email", "Invalid or missing email"),
+    ("invalid_status", "Invalid or missing status"),
     ("closed_no_score", "Closed ticket, no score"),
     ("score_out_of_range", "Satisfaction score out of range"),
 ])
@@ -61,6 +71,14 @@ def validate_row(row):
 
     status = (row.get("status") or "").strip()
     score_raw = (row.get("satisfaction_score") or "").strip()
+
+    # H2: VALID_STATUSES was declared but never actually checked here --
+    # an out-of-domain status (e.g. "BANANA") passed validation silently
+    # and then vanished from every breakdown with no warning, since
+    # Counter(...) only counts what's present rather than flagging what's
+    # unexpected.
+    if status not in VALID_STATUSES:
+        reasons.append("invalid_status")
 
     if status == "CLOSED" and not score_raw:
         reasons.append("closed_no_score")
@@ -94,10 +112,17 @@ def analyze(rows):
     valid_count = len(valid_rows)
     invalid_count = len(invalid_ticket_ids)
 
-    category_counts = Counter(r["category"] for r in valid_rows)
-    status_counts = Counter(r["status"] for r in valid_rows)
+    # H1: r["status"] / r["category"] / r["satisfaction_score"] previously
+    # used direct dict indexing, which raises a raw KeyError if a row
+    # (or the whole CSV) is missing that column. .get() with a sensible
+    # default means a malformed row can never crash this far downstream --
+    # the REQUIRED_COLUMNS check in main() is still the primary guard for
+    # a missing column entirely, this is defense in depth for anything
+    # that check doesn't catch.
+    category_counts = Counter(r.get("category", "") for r in valid_rows)
+    status_counts = Counter(r.get("status", "") for r in valid_rows)
 
-    closed_valid = [r for r in valid_rows if r["status"] == "CLOSED"]
+    closed_valid = [r for r in valid_rows if r.get("status") == "CLOSED"]
     closed_scores = [int(r["satisfaction_score"]) for r in closed_valid]
     score_distribution = Counter(closed_scores)
     avg_score = round(sum(closed_scores) / len(closed_scores), 2) if closed_scores else 0.0
@@ -212,10 +237,17 @@ def export_results_csv(summary, out_path="results.csv"):
     for score in [1, 2, 3, 4, 5]:
         rows.append((f"satisfaction_score_{score}_count", summary["score_distribution"].get(score, 0)))
 
-    with open(out_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["metric", "value"])
-        writer.writerows(rows)
+    # M9: an unguarded open(..., "w") raised a raw PermissionError
+    # traceback if the target path wasn't writable (e.g. a read-only
+    # directory, or out_path pointing somewhere the user can't write).
+    try:
+        with open(out_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.writer(f)
+            writer.writerow(["metric", "value"])
+            writer.writerows(rows)
+    except OSError as exc:
+        print(f"Error: could not write results to {out_path}: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     return out_path
 
@@ -232,11 +264,36 @@ def main():
     except FileNotFoundError:
         print(f"Error: file not found: {path}")
         sys.exit(1)
+    except (OSError, csv.Error) as exc:
+        print(f"Error: could not read {path}: {exc}")
+        sys.exit(1)
+
+    # H1 (primary guard) + M10: a header-only or empty CSV previously
+    # exited 0 and produced an all-zeros report as if it were real data --
+    # the API rejects the same input with a 400 (router.py); the CLI
+    # should treat it as equally critical instead of silently "succeeding".
+    if not rows:
+        print(f"Error: {path} has no data rows.")
+        sys.exit(1)
+
+    missing_columns = [c for c in REQUIRED_COLUMNS if c not in rows[0].keys()]
+    if missing_columns:
+        print(f"Error: {path} is missing required columns: {', '.join(missing_columns)}")
+        sys.exit(1)
 
     summary = analyze(rows)
     print(format_console(summary, source_file=path.split("/")[-1]))
 
-    answer = input("Export results to CSV? [y / n]: ").strip().lower()
+    # M9: input() raises EOFError when stdin is closed/piped (e.g. `< /dev/null`,
+    # a CI runner, or any non-interactive invocation) -- previously this
+    # crashed with a raw traceback *after* the analysis had already printed
+    # successfully, and exited 1 for what was otherwise a successful run.
+    try:
+        answer = input("Export results to CSV? [y / n]: ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        print("\nNo input available -- skipping CSV export.")
+        return
+
     if answer == "y":
         out_path = export_results_csv(summary)
         print(f"Results exported to {out_path}")

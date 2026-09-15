@@ -22,6 +22,11 @@ export default function CandidateDetailPage() {
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [stageUpdating, setStageUpdating] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
+  // M6: lets the updateError banner's Retry button re-run whichever of
+  // status/stage change actually failed, instead of omitting onRetry
+  // entirely (there was previously no way to know which of the two
+  // in-flight actions to re-attempt).
+  const [retryUpdate, setRetryUpdate] = useState<(() => void) | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -56,8 +61,10 @@ export default function CandidateDetailPage() {
       await api.patchCandidate(id, { status: value });
       const fresh = await api.getCandidate(id);
       setCandidate(fresh);
+      setRetryUpdate(null);
     } catch (err) {
       setUpdateError(err instanceof Error ? err.message : "Could not update status.");
+      setRetryUpdate(() => () => handleStatusChange(value));
     } finally {
       setStatusUpdating(false);
     }
@@ -83,15 +90,20 @@ export default function CandidateDetailPage() {
       await api.patchCandidate(id, { stage: value });
       const fresh = await api.getCandidate(id);
       setCandidate(fresh);
+      setRetryUpdate(null);
     } catch (err) {
       setUpdateError(err instanceof Error ? err.message : "Could not update stage.");
+      setRetryUpdate(() => () => handleStageChange(value));
     } finally {
       setStageUpdating(false);
     }
   }
 
-  async function handleAddNote(e: React.FormEvent) {
-    e.preventDefault();
+  // M6: split out from the form's submit handler so a retry button can
+  // call this directly (a retry has no FormEvent to pass through, and
+  // didn't need one -- the only thing handleAddNote's event arg was
+  // used for was preventDefault).
+  async function submitNote() {
     if (!noteContent.trim()) return;
     setAddingNote(true);
     setNoteError(null);
@@ -105,6 +117,11 @@ export default function CandidateDetailPage() {
     } finally {
       setAddingNote(false);
     }
+  }
+
+  async function handleAddNote(e: React.FormEvent) {
+    e.preventDefault();
+    void submitNote();
   }
 
   async function handleDeleteNote(noteId: string) {
@@ -122,7 +139,20 @@ export default function CandidateDetailPage() {
 
   if (loading) return <LoadingState label="Loading candidate…" />;
   if (error) return <ErrorState message={error} onRetry={fetchAll} />;
-  if (!candidate) return null;
+  if (!candidate) {
+    // M5: this previously rendered nothing at all -- a completely blank
+    // page with no loading state, no error, and no explanation, if the
+    // fetch resolved but the record didn't come back (e.g. a stale link
+    // to a deleted candidate).
+    return (
+      <main className="max-w-3xl mx-auto px-4 py-8">
+        <p className="text-sm text-gray-500 mb-4">Candidate not found.</p>
+        <Link href="/" className="text-sm text-blue-600 hover:underline">
+          ← Back to pipeline
+        </Link>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
@@ -235,8 +265,13 @@ export default function CandidateDetailPage() {
           </select>
         </div>
       </div>
-      {updateError && <ErrorState message={updateError} />}
-      {deleteError && <ErrorState message={deleteError} />}
+      {/* M6: both banners previously omitted onRetry, so a failed status/
+          stage update or a failed delete had no way forward but to
+          retry the underlying action manually via the UI controls. */}
+      {updateError && (
+        <ErrorState message={updateError} onRetry={retryUpdate ?? undefined} />
+      )}
+      {deleteError && <ErrorState message={deleteError} onRetry={handleDeleteCandidate} />}
 
       {/* Notes */}
       <div className="mt-8">
@@ -258,7 +293,15 @@ export default function CandidateDetailPage() {
             {addingNote ? "Adding…" : "Add"}
           </button>
         </form>
-        {noteError && <div className="mb-4"><ErrorState message={noteError} /></div>}
+        {/* M6: covers the add-note failure case, which is the common one --
+            a delete-note failure can already be retried directly via that
+            note's own Delete button, so this only wires the case that
+            previously had no path forward at all. */}
+        {noteError && (
+          <div className="mb-4">
+            <ErrorState message={noteError} onRetry={() => void submitNote()} />
+          </div>
+        )}
 
         {notes.length === 0 ? (
           <p className="text-sm text-gray-400">No notes yet.</p>
