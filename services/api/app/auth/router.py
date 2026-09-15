@@ -78,10 +78,23 @@ async def forgot_password(payload: ForgotPasswordRequest):
         token = create_reset_token(user["id"])
         try:
             send_reset_email(user["email"], token)
-        except Exception:
+        except Exception as exc:
             # Never let a send failure change the response or leak
             # anything to the client -- still always 200.
-            logger.exception("Failed to send password reset email")
+            #
+            # M1: logger.exception() logs the exception'''s own message
+            # plus a full traceback. Many email-provider SDKs embed the
+            # recipient address directly in their failure message (e.g.
+            # "could not deliver to user@example.com"), which would
+            # write a real registered user'''s email address to server
+            # logs from a completely unauthenticated endpoint. Logging
+            # only the user id and the exception type is enough to
+            # investigate a delivery problem without that leak.
+            logger.error(
+                "Failed to send password reset email for user_id=%s (%s)",
+                user["id"],
+                type(exc).__name__,
+            )
 
     return {"message": "If that address is registered, a reset link has been sent."}
 
