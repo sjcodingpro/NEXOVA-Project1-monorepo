@@ -47,7 +47,18 @@ export default function EditCandidatePage() {
 
   if (loading) return <LoadingState label="Loading candidate…" />;
   if (error) return <ErrorState message={error} onRetry={() => void fetchCandidate()} />;
-  if (!candidate) return null;
+  if (!candidate) {
+    // M5: same fix as candidates/[id]/page.tsx -- this previously
+    // rendered a blank page with no explanation.
+    return (
+      <main className="max-w-lg mx-auto px-4 py-8">
+        <p className="text-sm text-gray-500 mb-4">Candidate not found.</p>
+        <Link href="/" className="text-sm text-blue-600 hover:underline">
+          ← Back to pipeline
+        </Link>
+      </main>
+    );
+  }
 
   const initialValues: CreateCandidatePayload = {
     full_name: candidate.full_name,

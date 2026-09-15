@@ -229,8 +229,14 @@ export default function SuppliersPage() {
 
       {loading && <p className="mt-6 text-sm text-slate-400">Loading suppliers...</p>}
       {!loading && error && (
-        <div className="mt-6 border border-red-900 bg-red-950/50 text-red-300 text-sm rounded-md px-4 py-3">
-          {error}
+        <div className="mt-6 border border-red-900 bg-red-950/50 text-red-300 text-sm rounded-md px-4 py-3 flex items-center justify-between">
+          <span>{error}</span>
+          {/* M3: this error state previously had no retry, unlike the
+              incidents list which does the equivalent thing. The table
+              area just rendered empty with no way forward. */}
+          <button onClick={() => void fetchSuppliers()} className="underline ml-4">
+            Retry
+          </button>
         </div>
       )}
       {rowError && (
@@ -297,7 +303,10 @@ export default function SuppliersPage() {
                           onClick={() => startEditRate(s)}
                           className="cursor-pointer hover:underline"
                         >
-                          {s.monthly_rate.toFixed(2)} {s.currency}
+                          {/* L4: toFixed() throws if the API ever returns
+                              null/undefined for this field instead of a
+                              number. */}
+                          {(s.monthly_rate ?? 0).toFixed(2)} {s.currency}
                         </span>
                       )}
                     </td>
