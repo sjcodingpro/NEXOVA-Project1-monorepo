@@ -77,6 +77,14 @@ export default function IncidentAnalysisPage() {
       <Link href="/" className="text-sm text-slate-400 hover:text-slate-200">
         &larr; Back to backoffice
       </Link>
+      <span className="mx-2 text-slate-700">|</span>
+      <Link href="/incidents/register" className="text-sm text-slate-400 hover:text-slate-200">
+        Register an incident
+      </Link>
+      <span className="mx-2 text-slate-700">|</span>
+      <Link href="/incidents/list" className="text-sm text-slate-400 hover:text-slate-200">
+        View incident register &rarr;
+      </Link>
 
       <h1 className="text-2xl font-semibold mt-4">Incident analysis</h1>
       <p className="text-slate-400 text-sm mt-2 max-w-xl">

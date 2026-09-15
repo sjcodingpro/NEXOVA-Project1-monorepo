@@ -1,15 +1,38 @@
 """
-Incident analysis endpoints.
+Incident endpoints.
 
-POST /api/incidents/analyze        -- upload a CSV, get the summary as JSON
-GET  /api/incidents/results/export -- download the most recent analysis as CSV
+Existing (incident-analyzer milestone):
+    POST /api/incidents/analyze        -- upload a CSV, get the summary as JSON
+    GET  /api/incidents/results/export -- download the most recent analysis as CSV
+
+New (Centralized Incident Manager milestone):
+    POST  /api/incidents                     -- register an incident
+    GET   /api/incidents                     -- list incidents (filterable)
+    GET   /api/incidents/summary             -- aggregated counts
+    GET   /api/incidents/{incident_id}       -- incident detail
+    PATCH /api/incidents/{incident_id}/status -- move an incident through its lifecycle
+
+All new routes require auth (get_current_user), matching the rest of the
+API (users, profiles, suppliers) and this same router's existing /analyze
+endpoint.
 """
 
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
 from fastapi.responses import Response
 
 from app.auth.security import get_current_user
-from app.incidents import logic
+from app.incidents import logic, service
+from app.incidents.models import (
+    Branch,
+    Category,
+    IncidentCreate,
+    IncidentOut,
+    IncidentStatusUpdate,
+    Origin,
+    Status,
+)
 
 router = APIRouter(prefix="/api/incidents", tags=["incidents"])
 
@@ -74,3 +97,62 @@ async def export_results():
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=results.csv"},
     )
+
+
+# --- Centralized Incident Manager -------------------------------------------
+
+
+@router.post("", response_model=IncidentOut, status_code=status.HTTP_201_CREATED)
+async def create_incident(
+    payload: IncidentCreate, current_user: dict = Depends(get_current_user)
+):
+    created = service.create_incident(payload)
+    return IncidentOut(**created)
+
+
+@router.get("/summary")
+async def get_summary(current_user: dict = Depends(get_current_user)):
+    # Registered before the /{incident_id} routes below so "summary"
+    # is never mistaken for an incident id.
+    return service.get_summary()
+
+
+@router.get("", response_model=list[IncidentOut])
+async def list_incidents(
+    status: Optional[Status] = None,
+    origin: Optional[Origin] = None,
+    branch: Optional[Branch] = None,
+    category: Optional[Category] = None,
+    current_user: dict = Depends(get_current_user),
+):
+    # Parameter shadows the `status` module imported above (used for
+    # status.HTTP_* elsewhere in this file) -- safe, since this function
+    # never references that module, only the query param.
+    incidents = service.list_incidents(
+        status=status, origin=origin, branch=branch, category=category
+    )
+    return [IncidentOut(**i) for i in incidents]
+
+
+@router.get("/{incident_id}", response_model=IncidentOut)
+async def get_incident(incident_id: int, current_user: dict = Depends(get_current_user)):
+    incident = service.get_incident_by_id(incident_id)
+    if incident is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incident not found.")
+    return IncidentOut(**incident)
+
+
+@router.patch("/{incident_id}/status", response_model=IncidentOut)
+async def update_incident_status(
+    incident_id: int,
+    payload: IncidentStatusUpdate,
+    current_user: dict = Depends(get_current_user),
+):
+    try:
+        updated = service.update_incident_status(incident_id, payload.status)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+
+    if updated is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Incident not found.")
+    return IncidentOut(**updated)
