@@ -217,7 +217,10 @@ export default function IncidentAnalysisPage() {
               Scored tickets: {summary.scored_total} of {summary.closed_total}
             </p>
             <p className="text-sm text-slate-300 mb-3">
-              Average score: {summary.avg_score.toFixed(2)} / 5.00
+              {/* M14: toFixed() throws if the API response is ever
+                  missing this field or sends something non-numeric --
+                  the response was never validated at the boundary. */}
+              Average score: {(summary.avg_score ?? 0).toFixed(2)} / 5.00
             </p>
             <ul className="space-y-2">
               {[1, 2, 3, 4, 5].map((score) => (

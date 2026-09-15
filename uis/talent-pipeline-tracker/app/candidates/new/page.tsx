@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
@@ -10,11 +10,21 @@ import { CandidateForm } from "@/components/CandidateForm";
 export default function NewCandidatePage() {
   const router = useRouter();
   const [success, setSuccess] = useState(false);
+  // L3: setTimeout was never cleared -- navigating away (or the
+  // component otherwise unmounting) during the 800ms window fired a
+  // state update via router.push on an unmounted component.
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimer.current) clearTimeout(redirectTimer.current);
+    };
+  }, []);
 
   async function handleCreate(payload: CreateCandidatePayload) {
     const created = await api.createCandidate(payload);
     setSuccess(true);
-    setTimeout(() => {
+    redirectTimer.current = setTimeout(() => {
       router.push(`/candidates/${created.id}`);
     }, 800);
   }

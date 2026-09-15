@@ -1,16 +1,41 @@
 const TOKEN_KEY = "nexova_access_token";
 
+// M15: localStorage access was unguarded. Safari private mode, blocked
+// site data, or a full storage quota all make these throw
+// (SecurityError / QuotaExceededError) rather than fail gracefully --
+// previously that meant setToken() throwing right after a *successful*
+// login, so the user would see a raw storage error instead of landing
+// in the app. Degrading to an in-memory fallback keeps the session
+// working for the current page load even when persistent storage isn't
+// available; it just won't survive a refresh in that specific case,
+// which is an acceptable trade-off against the login flow crashing.
+let inMemoryToken: string | null = null;
+
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return inMemoryToken;
+  }
 }
 
 export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+  } catch {
+    inMemoryToken = token;
+  }
 }
 
 export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // ignore -- if storage was inaccessible on write, it's inaccessible
+    // on remove too; nothing further to clean up there
+  }
+  inMemoryToken = null;
 }
 
 /**

@@ -1,4 +1,5 @@
 import logging
+import os
 import uuid
 
 from dotenv import load_dotenv
@@ -24,9 +25,18 @@ logger = logging.getLogger("nexova_api")
 
 app = FastAPI(title="Nexova API", version="0.1.0")
 
+# L6: allow_origin_regex=r"http://localhost:\d+" is dev-only. If deployed
+# unchanged, any process able to bind a localhost port on the same
+# machine as a browser hitting this API would count as a trusted,
+# credentialed origin. Driven from an env var now, with the same
+# localhost-only regex as the default so local dev is unaffected;
+# a real deployment sets CORS_ORIGIN_REGEX to something that actually
+# matches its own domain instead of localhost.
+CORS_ORIGIN_REGEX = os.environ.get("CORS_ORIGIN_REGEX", r"http://localhost:\d+")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://localhost:\d+",
+    allow_origin_regex=CORS_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

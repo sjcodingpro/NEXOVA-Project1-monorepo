@@ -20,7 +20,14 @@ export default function ForgotPasswordPage() {
       // email exists -- the API itself never distinguishes the two
       // cases, so there is nothing here to leak either way.
       setSubmitted(true);
-    } catch {
+    } catch (err) {
+      // M17: previously a bare `catch {` that discarded the error
+      // object entirely -- nothing was logged anywhere, so a
+      // persistent outage on this specific endpoint would be
+      // invisible to whoever maintains this app. The user-facing
+      // message is unchanged (still generic, still safe); only the
+      // diagnostics were missing.
+      console.error("forgot-password request failed:", err);
       // A genuine failure to reach the API is a different situation
       // from "email not found" (which the API never reveals) -- safe
       // to surface this distinctly without leaking anything.

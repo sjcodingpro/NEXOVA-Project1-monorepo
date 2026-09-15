@@ -240,8 +240,13 @@ export default function SuppliersPage() {
         </div>
       )}
       {rowError && (
-        <div className="mt-4 border border-red-900 bg-red-950/50 text-red-300 text-sm rounded-md px-4 py-3">
-          {rowError}
+        <div className="mt-4 border border-red-900 bg-red-950/50 text-red-300 text-sm rounded-md px-4 py-3 flex items-center justify-between">
+          <span>{rowError}</span>
+          {/* L1: same fix as incidents/list/page.tsx -- this banner
+              previously had no dismiss control. */}
+          <button onClick={() => setRowError(null)} className="text-slate-400 hover:text-slate-200 ml-4" aria-label="Dismiss">
+            &times;
+          </button>
         </div>
       )}
 

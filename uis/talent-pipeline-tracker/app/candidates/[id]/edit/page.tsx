@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
@@ -18,6 +18,15 @@ export default function EditCandidatePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  // L3: same fix as candidates/new/page.tsx -- this timer was never
+  // cleared on unmount.
+  const redirectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimer.current) clearTimeout(redirectTimer.current);
+    };
+  }, []);
 
   const fetchCandidate = useCallback(async () => {
     setLoading(true);
@@ -40,7 +49,7 @@ export default function EditCandidatePage() {
   async function handleUpdate(payload: CreateCandidatePayload) {
     await api.updateCandidate(id, payload);
     setSuccess(true);
-    setTimeout(() => {
+    redirectTimer.current = setTimeout(() => {
       router.push(`/candidates/${id}`);
     }, 800);
   }
