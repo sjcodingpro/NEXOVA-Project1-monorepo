@@ -9,7 +9,7 @@ from typing import Optional
 
 from tinydb import Query
 
-from app.database import get_incidents_table
+from app.database import db_lock, get_incidents_table
 from app.incidents.models import Branch, Category, IncidentCreate, Origin, Status, is_valid_transition
 
 
@@ -36,8 +36,9 @@ def create_incident(payload: IncidentCreate) -> dict:
         "created_at": now,
         "updated_at": now,
     }
-    doc_id = table.insert(record)
-    return _row_to_incident(table.get(doc_id=doc_id))
+    with db_lock:
+        doc_id = table.insert(record)
+        return _row_to_incident(table.get(doc_id=doc_id))
 
 
 def get_incident_by_id(incident_id: int) -> Optional[dict]:
@@ -85,11 +86,12 @@ def update_incident_status(incident_id: int, new_status: Status) -> Optional[dic
             f"Cannot move an incident from '{current_status.value}' to '{new_status.value}'."
         )
 
-    table.update(
-        {"status": new_status.value, "updated_at": datetime.now(timezone.utc).isoformat()},
-        doc_ids=[incident_id],
-    )
-    return _row_to_incident(table.get(doc_id=incident_id))
+    with db_lock:
+        table.update(
+            {"status": new_status.value, "updated_at": datetime.now(timezone.utc).isoformat()},
+            doc_ids=[incident_id],
+        )
+        return _row_to_incident(table.get(doc_id=incident_id))
 
 
 def get_summary() -> dict:
@@ -139,5 +141,6 @@ def insert_seed_incident(record: dict) -> dict:
     scripts/seed_incidents.py's transform step) including the
     `seed_ticket_id` dedup key."""
     table = get_incidents_table()
-    doc_id = table.insert(record)
-    return _row_to_incident(table.get(doc_id=doc_id))
+    with db_lock:
+        doc_id = table.insert(record)
+        return _row_to_incident(table.get(doc_id=doc_id))

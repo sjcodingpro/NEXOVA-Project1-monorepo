@@ -31,6 +31,7 @@ RULES = OrderedDict([
     ("empty_description", "Empty or too-short description"),
     ("invalid_agent_id", "Missing or invalid agent_id"),
     ("invalid_email", "Invalid or missing email"),
+    ("invalid_status", "Invalid or missing status"),
     ("closed_no_score", "Closed ticket, no score"),
     ("score_out_of_range", "Satisfaction score out of range"),
 ])
@@ -68,6 +69,15 @@ def validate_row(row):
     status = (row.get("status") or "").strip()
     score_raw = (row.get("satisfaction_score") or "").strip()
 
+    # H2: VALID_STATUSES was declared but never actually checked here --
+    # an out-of-domain status (e.g. "BANANA") passed validation silently
+    # and then vanished from every breakdown with no warning, since
+    # Counter(...) only counts what is present rather than flagging what
+    # is unexpected. This affected the live /api/incidents/analyze
+    # endpoint (this module), not just the CLI copy in scripts/analyze.py.
+    if status not in VALID_STATUSES:
+        reasons.append("invalid_status")
+
     if status == "CLOSED" and not score_raw:
         reasons.append("closed_no_score")
 
@@ -100,10 +110,15 @@ def analyze(rows):
     valid_count = len(valid_rows)
     invalid_count = len(invalid_ticket_ids)
 
-    category_counts = Counter(r["category"] for r in valid_rows)
-    status_counts = Counter(r["status"] for r in valid_rows)
+    # H1: previously used direct dict indexing here, which raises a raw
+    # KeyError if a row is missing that column. router.py already
+    # guards against a CSV missing the column entirely (REQUIRED_COLUMNS
+    # check before this function is called), but .get() with a default
+    # is defense in depth against anything that guard doesn't catch.
+    category_counts = Counter(r.get("category", "") for r in valid_rows)
+    status_counts = Counter(r.get("status", "") for r in valid_rows)
 
-    closed_valid = [r for r in valid_rows if r["status"] == "CLOSED"]
+    closed_valid = [r for r in valid_rows if r.get("status") == "CLOSED"]
     closed_scores = [int(r["satisfaction_score"]) for r in closed_valid]
     score_distribution = Counter(closed_scores)
     avg_score = round(sum(closed_scores) / len(closed_scores), 2) if closed_scores else 0.0

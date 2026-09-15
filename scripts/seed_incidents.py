@@ -112,47 +112,64 @@ def main(csv_path: Path) -> int:
     unmappable_rows: list[int] = []
     seen_ticket_ids: set[str] = set()
 
-    try:
-        for idx, row in enumerate(rows, start=2):  # +2: header is line 1
-            reasons = logic.validate_row(row)  # reused, not duplicated
-            if reasons:
-                invalid_rows.append((idx, reasons))
+    for idx, row in enumerate(rows, start=2):  # +2: header is line 1
+        reasons = logic.validate_row(row)  # reused, not duplicated
+        if reasons:
+            invalid_rows.append((idx, reasons))
+            continue
+
+        transformed = transform_row(row)
+        if transformed is None:
+            unmappable_rows.append(idx)
+            continue
+
+        # Sanity-check the mapped values actually land on real enum
+        # members (catches a typo in STATUS_MAP/CATEGORY_MAP early,
+        # rather than writing a bad record silently).
+        try:
+            Status(transformed["status"])
+            Category(transformed["category"])
+            Origin(transformed["origin"])
+            Branch(transformed["branch"])
+        except ValueError:
+            # L2: don't interpolate the raw exception text -- low
+            # sensitivity here (enum values only), but the pattern
+            # invites leaking more later; name the failure instead.
+            invalid_rows.append((idx, ["mapped to an invalid enum value"]))
+            continue
+
+        ticket_id = transformed["seed_ticket_id"]
+        if ticket_id:
+            if ticket_id in seen_ticket_ids:
+                skipped_duplicates += 1
                 continue
-
-            transformed = transform_row(row)
-            if transformed is None:
-                unmappable_rows.append(idx)
+            if service.find_by_seed_ticket_id(ticket_id) is not None:
+                skipped_duplicates += 1
                 continue
+            seen_ticket_ids.add(ticket_id)
 
-            # Sanity-check the mapped values actually land on real enum
-            # members (catches a typo in STATUS_MAP/CATEGORY_MAP early,
-            # rather than writing a bad record silently).
-            try:
-                Status(transformed["status"])
-                Category(transformed["category"])
-                Origin(transformed["origin"])
-                Branch(transformed["branch"])
-            except ValueError as exc:
-                invalid_rows.append((idx, [f"mapped to invalid enum value: {exc}"]))
-                continue
-
-            ticket_id = transformed["seed_ticket_id"]
-            if ticket_id:
-                if ticket_id in seen_ticket_ids:
-                    skipped_duplicates += 1
-                    continue
-                if service.find_by_seed_ticket_id(ticket_id) is not None:
-                    skipped_duplicates += 1
-                    continue
-                seen_ticket_ids.add(ticket_id)
-
+        # H6: previously the try/except wrapped this entire loop, so a
+        # bug anywhere above (transform, mapping) was reported
+        # identically to a genuine DB failure here, and rows already
+        # committed before a failure were never counted or reported --
+        # the operator had no way to know how much of the run actually
+        # landed. Narrowing the guard to just the insert call means
+        # only real insert failures are caught here, and we can report
+        # exactly how far the run got. Only the exception type is
+        # logged, not its message -- a TinyDB serialization error's
+        # message can embed the offending record, including the
+        # incident description text.
+        try:
             service.insert_seed_incident(transformed)
             inserted += 1
-    except Exception as exc:  # noqa: BLE001 -- top-level guard for an
-        # otherwise-uncaught DB error; still exits non-zero rather than
-        # leaving the run in a silently-partial state.
-        print(f"ERROR: seeding failed: {exc}", file=sys.stderr)
-        return 1
+        except Exception as exc:
+            print(
+                f"ERROR: failed to insert the row at line {idx}, aborting. "
+                f"{inserted} row(s) were committed before this failure. "
+                f"({type(exc).__name__})",
+                file=sys.stderr,
+            )
+            return 1
 
     print(f"Seed complete: {inserted} inserted, {skipped_duplicates} already present (skipped).")
     if invalid_rows:
