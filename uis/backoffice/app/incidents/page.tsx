@@ -44,11 +44,15 @@ export default function IncidentAnalysisPage() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // M4: retained so a failed analysis can be retried without the user
+  // having to re-drag or re-select the same file.
+  const [lastFile, setLastFile] = useState<File | null>(null);
 
   const handleFile = useCallback(async (file: File) => {
     setAnalyzing(true);
     setError(null);
     setFileName(file.name);
+    setLastFile(file);
     try {
       const result = await analyzeIncidents(file);
       setSummary(result);
@@ -126,8 +130,15 @@ export default function IncidentAnalysisPage() {
       )}
 
       {!analyzing && error && (
-        <div className="mt-4 border border-red-900 bg-red-950/50 text-red-300 text-sm rounded-md px-4 py-3">
-          {error}
+        <div className="mt-4 border border-red-900 bg-red-950/50 text-red-300 text-sm rounded-md px-4 py-3 flex items-center justify-between">
+          <span>{error}</span>
+          {/* M4: previously the only way forward was to re-drag/re-select
+              the same file manually. */}
+          {lastFile && (
+            <button onClick={() => void handleFile(lastFile)} className="underline ml-4 shrink-0">
+              Try again
+            </button>
+          )}
         </div>
       )}
 
