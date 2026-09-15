@@ -10,7 +10,15 @@ from typing import Optional
 from tinydb import Query
 
 from app.database import db_lock, get_incidents_table
-from app.incidents.models import Branch, Category, IncidentCreate, Origin, Status, is_valid_transition
+from app.incidents.models import (
+    Branch,
+    Category,
+    IncidentCreate,
+    InvalidTransitionError,
+    Origin,
+    Status,
+    is_valid_transition,
+)
 
 
 def _row_to_incident(doc) -> dict:
@@ -82,9 +90,7 @@ def update_incident_status(incident_id: int, new_status: Status) -> Optional[dic
 
     current_status = Status(existing["status"])
     if not is_valid_transition(current_status, new_status):
-        raise ValueError(
-            f"Cannot move an incident from '{current_status.value}' to '{new_status.value}'."
-        )
+        raise InvalidTransitionError(current_status.value, new_status.value)
 
     with db_lock:
         table.update(

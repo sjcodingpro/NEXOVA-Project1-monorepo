@@ -57,6 +57,25 @@ def is_valid_transition(current: Status, target: Status) -> bool:
     return target in VALID_STATUS_TRANSITIONS.get(current, set())
 
 
+class InvalidTransitionError(ValueError):
+    """Raised when a status update doesn't follow an allowed transition.
+
+    M16: carries the current/target values as structured fields instead
+    of only a pre-formatted string, so the router can build the
+    client-facing message itself from known-safe enum values rather
+    than forwarding str(exc) directly. Today's message is safe either
+    way (it only ever contains enum values), but that pattern -- catch
+    ValueError, forward str(exc) to the client -- would silently start
+    leaking real content the moment any other ValueError started using
+    the same path.
+    """
+
+    def __init__(self, current: str, target: str):
+        self.current = current
+        self.target = target
+        super().__init__(f"Cannot move an incident from '{current}' to '{target}'.")
+
+
 class IncidentCreate(BaseModel):
     """POST /api/incidents payload. status always starts at 'open' for
     incidents registered through the form -- only the seed script (which
