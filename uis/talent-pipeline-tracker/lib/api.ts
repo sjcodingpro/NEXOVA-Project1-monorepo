@@ -10,12 +10,19 @@ import type {
   CreateNotePayload,
 } from "@/types/candidate";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
-
-if (!BASE_URL) {
-  // Fails loudly at build/dev time rather than producing confusing
-  // "fetch failed" errors deep in a component.
-  throw new Error("NEXT_PUBLIC_API_URL is not set. Check your .env.local.");
+function getBaseUrl(): string {
+  const url = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  if (!url) {
+    // H8: this used to throw at module import time. A module-level
+    // throw fires during hydration, not at build time as the previous
+    // comment claimed -- with no error boundary to catch it (see
+    // app/error.tsx), that crashed the whole page with a blank screen
+    // and no message. Throwing lazily, only when a request actually
+    // needs the URL, lets the error boundary catch it and show a real
+    // message instead.
+    throw new Error("NEXT_PUBLIC_API_URL is not set. Check your .env.local.");
+  }
+  return url;
 }
 
 /**
@@ -24,9 +31,10 @@ if (!BASE_URL) {
  * deal with typed request/response shapes.
  */
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const baseUrl = getBaseUrl();
   let res: Response;
   try {
-    res = await fetch(`${BASE_URL}${path}`, {
+    res = await fetch(`${baseUrl}${path}`, {
       ...init,
       headers: {
         "Content-Type": "application/json",
@@ -58,7 +66,16 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     return undefined as T;
   }
 
-  return (await res.json()) as T;
+  // H3: the success path parsed the body with no guard, while the
+  // error path just above carefully guards its own parse. A 2xx
+  // response carrying HTML (a proxy/gateway interstitial) or an empty
+  // body threw a raw SyntaxError straight out of this function, which
+  // every caller then rendered verbatim.
+  try {
+    return (await res.json()) as T;
+  } catch {
+    throw new Error("Received an unexpected response from the server.");
+  }
 }
 
 function buildQuery(params: RecordsQueryParams = {}): string {
