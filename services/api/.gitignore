@@ -5,3 +5,4 @@ __pycache__/
 db.json
 .env
 !.env.example
+.coverage

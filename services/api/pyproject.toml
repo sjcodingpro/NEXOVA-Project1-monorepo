@@ -26,3 +26,10 @@ packages = ["app"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "seed.py" = "seed.py"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+]
