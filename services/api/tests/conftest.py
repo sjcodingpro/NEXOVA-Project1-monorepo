@@ -1,8 +1,10 @@
 """
-Shared fixtures for the auth test suite.
-
-Each test gets a fresh, isolated TinyDB file so tests never see each
-other's data -- no shared state, no ordering dependencies.
+Shared fixtures for the full test suite -- both the AUTH-088 auth tests
+and the inventory (Asset/AssetEntry/AssetExit) tests. Each test gets
+fresh, isolated TinyDB and SQLite-standing-in-for-Supabase databases so
+tests never see each other's data, and the two suites' fixtures are
+named distinctly (client vs inventory_client, etc.) so adding one never
+silently breaks the other.
 """
 
 import os
@@ -14,9 +16,13 @@ os.environ.setdefault("JWT_SECRET_KEY", "test-secret-key-for-pytest-only")
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import pytest
+from sqlalchemy import event
+from sqlmodel import Session, SQLModel, create_engine
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+
+# --- TinyDB (auth/users) -- unchanged from AUTH-088 -------------------------
 
 @pytest.fixture
 def isolated_db(tmp_path, monkeypatch):
@@ -33,6 +39,7 @@ def isolated_db(tmp_path, monkeypatch):
 
 @pytest.fixture
 def client(isolated_db):
+    """Auth-only FastAPI app -- used by the AUTH-088 suite."""
     from app.auth.router import router as auth_router
 
     app = FastAPI()
@@ -66,6 +73,9 @@ def make_user(isolated_db):
 
 @pytest.fixture
 def auth_headers():
+    """Factory: auth_headers(user_id, role="user") -> Authorization
+    header dict. Shared by both suites -- inventory tests create a user
+    via make_user, then a token via this same fixture."""
     from app.auth.security import create_access_token
 
     def _headers(user_id, role="user"):
@@ -73,3 +83,49 @@ def auth_headers():
         return {"Authorization": f"Bearer {token}"}
 
     return _headers
+
+
+# --- SQLite standing in for Supabase -- new, for the inventory suite -------
+
+@pytest.fixture
+def inventory_engine(tmp_path):
+    """A fresh SQLite database per test, with foreign keys enabled --
+    SQLite doesn't enforce FKs by default, so this makes it behave like
+    Postgres does out of the box. That's what makes
+    test_inventory.py's FK enforcement test meaningful."""
+    db_file = tmp_path / "test_inventory.db"
+    eng = create_engine(f"sqlite:///{db_file}")
+
+    @event.listens_for(eng, "connect")
+    def _enable_fk(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
+
+    from app.inventory.models import Asset, AssetEntry, AssetExit  # noqa: F401
+    SQLModel.metadata.create_all(eng)
+    return eng
+
+
+@pytest.fixture
+def db_session(inventory_engine):
+    with Session(inventory_engine) as session:
+        yield session
+
+
+@pytest.fixture
+def inventory_client(inventory_engine, isolated_db, monkeypatch):
+    """FastAPI app with both auth (so get_current_user resolves against
+    the isolated TinyDB) and inventory routers. app.database.engine is
+    monkeypatched to the isolated SQLite stand-in, so no test here ever
+    touches the real Supabase database."""
+    import app.database as database_module
+    monkeypatch.setattr(database_module, "engine", inventory_engine)
+
+    from app.auth.router import router as auth_router
+    from app.inventory.router import router as inventory_router
+
+    app = FastAPI()
+    app.include_router(auth_router)
+    app.include_router(inventory_router)
+    return TestClient(app)

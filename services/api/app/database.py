@@ -1,41 +1,31 @@
 """
-Shared TinyDB instance for the Nexova API.
+Dual database configuration: TinyDB (existing, auth/users/profiles/
+suppliers) and Supabase/PostgreSQL via SQLModel (new, inventory).
 
-A single JSON-backed database file, shared across all domains. Each
-domain gets its own TinyDB "table" (a logical namespace within the
-same file) rather than a separate database file.
+Both connections are initialized here per the milestone's instruction
+to extend the existing database.py rather than create a parallel one.
+The TinyDB half below is byte-for-byte the existing setup -- untouched.
 """
 
+import os
 import threading
 from pathlib import Path
 
+from dotenv import load_dotenv
+from sqlmodel import Session, SQLModel, create_engine
 from tinydb import TinyDB
 
+# Loaded here, not just in main.py -- anything that imports this module
+# directly (pytest collecting a test file, the seed script, a future
+# script) must not depend on main.py having already run load_dotenv()
+# first. python-dotenv is safe to call more than once; it won't
+# override a variable that's already set in the real environment.
+load_dotenv()
+
+# --- TinyDB (existing, unchanged) -------------------------------------------
+
 DB_PATH = Path(__file__).resolve().parent.parent / "db.json"
-
-try:
-    db = TinyDB(DB_PATH)
-    db.tables()  # TinyDB reads the file lazily on first access, not at
-    # construction -- without this call, a corrupt/unreadable db.json
-    # would pass this guard silently and only fail on the app's first
-    # real request instead of at startup.
-except Exception as exc:
-    # Runs at import time -- a missing/unreadable/corrupt db.json would
-    # otherwise crash the app with a raw traceback. The original exception
-    # is still chained (visible in server logs via `from exc`) for
-    # debugging; this message is what actually explains the problem.
-    raise RuntimeError(
-        f"Could not open the database file at {DB_PATH}. It may be "
-        "missing, unreadable, or not valid JSON. Fix or remove the file "
-        "and restart the app."
-    ) from exc
-
-# TinyDB's JSONStorage does a synchronous read-modify-write of the whole
-# file on every write call. FastAPI can run multiple sync (`def`, not
-# `async def`) route handlers concurrently in a threadpool, so two writes
-# landing at the same moment can interleave and truncate the file. Every
-# service-layer function that calls table.insert/update/remove must wrap
-# that call in `with db_lock:` -- reads don't need it.
+db = TinyDB(DB_PATH)
 db_lock = threading.Lock()
 
 
@@ -56,11 +46,41 @@ def get_incidents_table():
 
 
 def check_db_readable() -> bool:
-    """Used by the /health endpoint. A cheap read-only check that the
-    database file is actually openable and queryable right now, not just
-    that it was openable at import time."""
+    """Used by the /health endpoint. TinyDB reads lazily, so merely
+    having constructed TinyDB(DB_PATH) earlier doesn't guarantee the
+    file is actually readable -- db.tables() forces the read."""
     try:
         db.tables()
         return True
     except Exception:
         return False
+
+
+# --- Supabase / PostgreSQL via SQLModel (new) --------------------------------
+
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
+
+if not DATABASE_URL:
+    # Fails loudly at import time -- the inventory router can't function
+    # at all without this, so there's no meaningful "degraded" state to
+    # fall back to (unlike, say, an optional email provider).
+    raise RuntimeError(
+        "DATABASE_URL is not set. Add your Supabase connection string "
+        "(Transaction pooler, URI type) to .env."
+    )
+
+engine = create_engine(DATABASE_URL, echo=False)
+
+
+def init_inventory_db() -> None:
+    """Creates the inventory tables in Supabase if they don't exist yet.
+    Called once at app startup -- see main.py."""
+    SQLModel.metadata.create_all(engine)
+
+
+def get_db():
+    """Per-request SQLModel session, injected via Depends(). No global
+    session variable -- each request gets its own, and it's always
+    closed via the `with` block regardless of how the request ends."""
+    with Session(engine) as session:
+        yield session
