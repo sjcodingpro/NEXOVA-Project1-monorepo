@@ -14,12 +14,13 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.database import check_db_readable
+from app.database import check_db_readable, init_inventory_db
 from app.incidents.router import router as incidents_router
 from app.suppliers.router import router as suppliers_router
 from app.auth.router import router as auth_router
 from app.users.router import router as users_router
 from app.profiles.router import router as profiles_router
+from app.inventory.router import router as inventory_router
 
 logger = logging.getLogger("nexova_api")
 
@@ -47,6 +48,15 @@ app.include_router(suppliers_router)
 app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(profiles_router)
+app.include_router(inventory_router)
+
+
+@app.on_event("startup")
+def on_startup_init_inventory_schema() -> None:
+    # Creates the Asset/AssetEntry/AssetExit tables in Supabase if they
+    # don't exist yet. Safe to call on every startup -- create_all only
+    # creates what's missing, it doesn't touch existing tables.
+    init_inventory_db()
 
 
 @app.exception_handler(Exception)
