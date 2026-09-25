@@ -1,0 +1,48 @@
+networks:
+  nexova-network:
+    driver: bridge
+
+volumes:
+  # Named volumes layered on top of the bind mounts below, specifically
+  # so each container's OWN dependency install (built for its actual
+  # architecture inside the image) isn't shadowed by the host's copy of
+  # the same directory when the bind mount is applied. Without these,
+  # `docker compose up` would work once on a fresh checkout, then break
+  # the moment the host's node_modules/.venv (built for the host's own
+  # OS/architecture) got mounted over the container's Linux-built one.
+  website_node_modules:
+  backoffice_node_modules:
+  backend_venv:
+
+services:
+  backend:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services/api:/app
+      - backend_venv:/app/.venv
+    env_file:
+      - .env
+    networks:
+      - nexova-network
+
+  ui:
+    build:
+      context: ./uis
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    volumes:
+      - ./uis:/app
+      - website_node_modules:/app/website/node_modules
+      - backoffice_node_modules:/app/backoffice/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    networks:
+      - nexova-network
