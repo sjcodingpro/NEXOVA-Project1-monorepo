@@ -1,0 +1,1467 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://nexova.internal/schemas/telemetry/event-schemas.json",
+  "title": "Nexova Telemetry Event Schemas",
+  "description": "Draft-07 JSON Schemas for every telemetry event in the Nexova Telemetry Plan. Each event validates the standard Event Envelope plus an event-specific, allowlisted 'properties' object (additionalProperties: false everywhere, including inside 'properties', so nothing outside the documented allowlist can be emitted without a schema change).",
+  "schemaVersion": "1.0.0",
+  "definitions": {
+    "envelope": {
+      "type": "object",
+      "description": "Fields present on every event, regardless of event_type.",
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "event_type": {
+          "type": "string",
+          "pattern": "^[a-z]+(_[a-z]+)*_[a-z]+$"
+        },
+        "schemaVersion": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "string"
+        },
+        "properties": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "eventSchemas": {
+    "inbound_order_created": {
+      "$id": "#/eventSchemas/inbound_order_created",
+      "type": "object",
+      "title": "inbound_order_created",
+      "description": "We need to know how much material is being produced/purchased, for which programme, and at what cost.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Identifier of the authenticated user who performed the action."
+        },
+        "event_type": {
+          "const": "inbound_order_created"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "currency",
+            "office",
+            "order_id",
+            "product_category",
+            "product_id",
+            "programme_id",
+            "quantity",
+            "supplier_id",
+            "unit_cost"
+          ],
+          "properties": {
+            "office": {
+              "type": "string",
+              "description": "Office the transaction belongs to. Independent from interface language.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            },
+            "product_id": {
+              "type": "string",
+              "description": "Stable identifier of the material item (product)."
+            },
+            "product_category": {
+              "type": "string",
+              "description": "Category of the material item.",
+              "enum": [
+                "training_kit",
+                "certification",
+                "onboarding_equipment"
+              ]
+            },
+            "programme_id": {
+              "type": "string",
+              "description": "Identifier of the training/certification programme the material belongs to."
+            },
+            "quantity": {
+              "type": "integer",
+              "description": "Units affected by this transaction.",
+              "minimum": 1
+            },
+            "currency": {
+              "type": "string",
+              "description": "Local currency of the office. EUR for Valencia, USD for Miami. Never converted at the telemetry layer.",
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            },
+            "supplier_id": {
+              "type": "string",
+              "description": "Identifier of the supplier the batch was received from."
+            },
+            "unit_cost": {
+              "type": "number",
+              "description": "Cost per unit in the office's local currency, used for kit_cost_variance_detected.",
+              "minimum": 0
+            },
+            "order_id": {
+              "type": "string",
+              "description": "Identifier of the InboundOrder record, for correlation with the inventory database."
+            }
+          }
+        }
+      }
+    },
+    "outbound_order_created": {
+      "$id": "#/eventSchemas/outbound_order_created",
+      "type": "object",
+      "title": "outbound_order_created",
+      "description": "We need to know which programmes consume the most material, and at what rate.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Identifier of the authenticated user who performed the action."
+        },
+        "event_type": {
+          "const": "outbound_order_created"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "currency",
+            "office",
+            "order_id",
+            "product_category",
+            "product_id",
+            "programme_id",
+            "quantity",
+            "recipient_role"
+          ],
+          "properties": {
+            "office": {
+              "type": "string",
+              "description": "Office the transaction belongs to. Independent from interface language.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            },
+            "product_id": {
+              "type": "string",
+              "description": "Stable identifier of the material item (product)."
+            },
+            "product_category": {
+              "type": "string",
+              "description": "Category of the material item.",
+              "enum": [
+                "training_kit",
+                "certification",
+                "onboarding_equipment"
+              ]
+            },
+            "programme_id": {
+              "type": "string",
+              "description": "Identifier of the training/certification programme the material belongs to."
+            },
+            "quantity": {
+              "type": "integer",
+              "description": "Units affected by this transaction.",
+              "minimum": 1
+            },
+            "currency": {
+              "type": "string",
+              "description": "Local currency of the office. EUR for Valencia, USD for Miami. Never converted at the telemetry layer.",
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            },
+            "recipient_role": {
+              "type": "string",
+              "description": "Role of the recipient. Never a personal identifier or name.",
+              "enum": [
+                "client",
+                "candidate",
+                "consultant",
+                "support_agent"
+              ]
+            },
+            "order_id": {
+              "type": "string",
+              "description": "Identifier of the OutboundOrder record."
+            }
+          }
+        }
+      }
+    },
+    "stock_threshold_triggered": {
+      "$id": "#/eventSchemas/stock_threshold_triggered",
+      "type": "object",
+      "title": "stock_threshold_triggered",
+      "description": "We need to know how often a programme runs out of available material.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Null when the event is emitted by a system process (scheduled job, threshold checker) with no human actor."
+        },
+        "event_type": {
+          "const": "stock_threshold_triggered"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "currency",
+            "current_stock",
+            "minimum_threshold",
+            "office",
+            "product_category",
+            "product_id",
+            "programme_id"
+          ],
+          "properties": {
+            "office": {
+              "type": "string",
+              "description": "Office the transaction belongs to. Independent from interface language.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            },
+            "product_id": {
+              "type": "string",
+              "description": "Stable identifier of the material item (product)."
+            },
+            "product_category": {
+              "type": "string",
+              "description": "Category of the material item.",
+              "enum": [
+                "training_kit",
+                "certification",
+                "onboarding_equipment"
+              ]
+            },
+            "programme_id": {
+              "type": "string",
+              "description": "Identifier of the training/certification programme the material belongs to."
+            },
+            "currency": {
+              "type": "string",
+              "description": "Local currency of the office. EUR for Valencia, USD for Miami. Never converted at the telemetry layer.",
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            },
+            "current_stock": {
+              "type": "integer",
+              "description": "Stock level at the moment the threshold was crossed.",
+              "minimum": 0
+            },
+            "minimum_threshold": {
+              "type": "integer",
+              "description": "Configured minimum stock threshold for this product/office.",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "direct_stock_edit_rejected": {
+      "$id": "#/eventSchemas/direct_stock_edit_rejected",
+      "type": "object",
+      "title": "direct_stock_edit_rejected",
+      "description": "We need to know if staff are attempting to bypass material traceability controls.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Identifier of the authenticated user who performed the action."
+        },
+        "event_type": {
+          "const": "direct_stock_edit_rejected"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attempted_quantity",
+            "currency",
+            "office",
+            "product_category",
+            "product_id",
+            "programme_id",
+            "rejection_reason"
+          ],
+          "properties": {
+            "office": {
+              "type": "string",
+              "description": "Office the transaction belongs to. Independent from interface language.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            },
+            "product_id": {
+              "type": "string",
+              "description": "Stable identifier of the material item (product)."
+            },
+            "product_category": {
+              "type": "string",
+              "description": "Category of the material item.",
+              "enum": [
+                "training_kit",
+                "certification",
+                "onboarding_equipment"
+              ]
+            },
+            "programme_id": {
+              "type": "string",
+              "description": "Identifier of the training/certification programme the material belongs to."
+            },
+            "currency": {
+              "type": "string",
+              "description": "Local currency of the office. EUR for Valencia, USD for Miami. Never converted at the telemetry layer.",
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            },
+            "attempted_quantity": {
+              "type": "integer",
+              "description": "Stock delta the user attempted to apply directly, before the system rejected it."
+            },
+            "rejection_reason": {
+              "type": "string",
+              "description": "Why the system rejected the attempt.",
+              "enum": [
+                "direct_edit_not_allowed",
+                "insufficient_permissions"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "kit_cost_variance_detected": {
+      "$id": "#/eventSchemas/kit_cost_variance_detected",
+      "type": "object",
+      "title": "kit_cost_variance_detected",
+      "description": "We need to know when a material supplier raises prices abnormally.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Null when the event is emitted by a system process (scheduled job, threshold checker) with no human actor."
+        },
+        "event_type": {
+          "const": "kit_cost_variance_detected"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "currency",
+            "historical_unit_cost",
+            "office",
+            "product_category",
+            "product_id",
+            "programme_id",
+            "supplier_id",
+            "threshold_pct",
+            "unit_cost",
+            "variance_pct"
+          ],
+          "properties": {
+            "office": {
+              "type": "string",
+              "description": "Office the transaction belongs to. Independent from interface language.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            },
+            "product_id": {
+              "type": "string",
+              "description": "Stable identifier of the material item (product)."
+            },
+            "product_category": {
+              "type": "string",
+              "description": "Category of the material item.",
+              "enum": [
+                "training_kit",
+                "certification",
+                "onboarding_equipment"
+              ]
+            },
+            "programme_id": {
+              "type": "string",
+              "description": "Identifier of the training/certification programme the material belongs to."
+            },
+            "currency": {
+              "type": "string",
+              "description": "Local currency of the office. EUR for Valencia, USD for Miami. Never converted at the telemetry layer.",
+              "enum": [
+                "EUR",
+                "USD"
+              ]
+            },
+            "supplier_id": {
+              "type": "string",
+              "description": "Supplier whose pricing triggered the variance."
+            },
+            "unit_cost": {
+              "type": "number",
+              "description": "Unit cost on the inbound order that triggered the check.",
+              "minimum": 0
+            },
+            "historical_unit_cost": {
+              "type": "number",
+              "description": "Historical average unit cost for this product/supplier.",
+              "minimum": 0
+            },
+            "variance_pct": {
+              "type": "number",
+              "description": "Percentage deviation from the historical unit cost (e.g. 0.12 for +12%)."
+            },
+            "threshold_pct": {
+              "type": "number",
+              "description": "Configured variance threshold that was crossed (e.g. 0.10 for 10%)."
+            }
+          }
+        }
+      }
+    },
+    "login_failed": {
+      "$id": "#/eventSchemas/login_failed",
+      "type": "object",
+      "title": "login_failed",
+      "description": "We need to know how many failed login attempts happen per day and whether they cluster on specific accounts.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Identifier of the authenticated user who performed the action."
+        },
+        "event_type": {
+          "const": "login_failed"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "attempt_count",
+            "attempted_username_hash",
+            "failure_reason",
+            "office"
+          ],
+          "properties": {
+            "office": {
+              "type": "string",
+              "description": "Office context of the login attempt, if known.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            },
+            "attempted_username_hash": {
+              "type": "string",
+              "description": "SHA-256 hash of the attempted username/email. Never the raw value."
+            },
+            "failure_reason": {
+              "type": "string",
+              "description": "Why authentication failed.",
+              "enum": [
+                "invalid_credentials",
+                "account_locked",
+                "account_disabled"
+              ]
+            },
+            "attempt_count": {
+              "type": "integer",
+              "description": "Number of identical failures collapsed into this event by the debounce window.",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "login_succeeded": {
+      "$id": "#/eventSchemas/login_succeeded",
+      "type": "object",
+      "title": "login_succeeded",
+      "description": "We need to know daily active users per office and role, and general login patterns (peak hours, weekday distribution).",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Identifier of the authenticated user who performed the action."
+        },
+        "event_type": {
+          "const": "login_succeeded"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "office",
+            "role"
+          ],
+          "properties": {
+            "office": {
+              "type": "string",
+              "description": "Office context of the login.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            },
+            "role": {
+              "type": "string",
+              "description": "Role of the authenticated user (e.g. admin, ops, consultant)."
+            }
+          }
+        }
+      }
+    },
+    "session_expired": {
+      "$id": "#/eventSchemas/session_expired",
+      "type": "object",
+      "title": "session_expired",
+      "description": "We need to know how often sessions expire mid-task rather than via explicit logout, which may indicate the session timeout is too short for real workflows.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Null when the event is emitted by a system process (scheduled job, threshold checker) with no human actor."
+        },
+        "event_type": {
+          "const": "session_expired"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "office",
+            "session_duration_seconds"
+          ],
+          "properties": {
+            "office": {
+              "type": "string",
+              "description": "Office context of the expired session.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            },
+            "session_duration_seconds": {
+              "type": "integer",
+              "description": "How long the session was active before expiring.",
+              "minimum": 0
+            },
+            "last_section": {
+              "type": "string",
+              "description": "Last backoffice section the user was on before expiry, if known."
+            }
+          }
+        }
+      }
+    },
+    "api_latency_recorded": {
+      "$id": "#/eventSchemas/api_latency_recorded",
+      "type": "object",
+      "title": "api_latency_recorded",
+      "description": "We need to know which API endpoints are slow and whether latency is degrading over time or under load.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Null when the event is emitted by a system process (scheduled job, threshold checker) with no human actor."
+        },
+        "event_type": {
+          "const": "api_latency_recorded"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "duration_ms",
+            "endpoint",
+            "method",
+            "sampled",
+            "status_code"
+          ],
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "description": "Route template, e.g. /inventory/orders/inbound (never the raw URL with path parameters)."
+            },
+            "method": {
+              "type": "string",
+              "description": "HTTP method.",
+              "enum": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+              ]
+            },
+            "status_code": {
+              "type": "integer",
+              "description": "HTTP status code returned."
+            },
+            "duration_ms": {
+              "type": "number",
+              "description": "Server-side processing time in milliseconds.",
+              "minimum": 0
+            },
+            "sampled": {
+              "type": "boolean",
+              "description": "True if this event was captured under the sampling policy rather than the elevated-error-rate override."
+            }
+          }
+        }
+      }
+    },
+    "validation_error_raised": {
+      "$id": "#/eventSchemas/validation_error_raised",
+      "type": "object",
+      "title": "validation_error_raised",
+      "description": "We need to know which fields/forms in the backoffice produce the most validation errors, which may indicate a confusing UI or unclear business rule.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Identifier of the authenticated user who performed the action."
+        },
+        "event_type": {
+          "const": "validation_error_raised"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "error_code",
+            "field_name",
+            "form_name"
+          ],
+          "properties": {
+            "office": {
+              "type": "string",
+              "description": "Office context, if applicable to the form.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            },
+            "form_name": {
+              "type": "string",
+              "description": "Identifier of the form/section where the error occurred, e.g. inbound_order_form."
+            },
+            "field_name": {
+              "type": "string",
+              "description": "Name of the field that failed validation. Never the submitted value."
+            },
+            "error_code": {
+              "type": "string",
+              "description": "Machine-readable validation rule that failed, e.g. required, min_quantity, invalid_currency."
+            }
+          }
+        }
+      }
+    },
+    "api_request_failed": {
+      "$id": "#/eventSchemas/api_request_failed",
+      "type": "object",
+      "title": "api_request_failed",
+      "description": "We need to know when and where the API is returning 5xx errors, and whether failures cluster around a specific endpoint, office, or deployment.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Null when the event is emitted by a system process (scheduled job, threshold checker) with no human actor."
+        },
+        "event_type": {
+          "const": "api_request_failed"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "endpoint",
+            "error_class",
+            "method",
+            "occurrence_count",
+            "status_code"
+          ],
+          "properties": {
+            "endpoint": {
+              "type": "string",
+              "description": "Route template that failed."
+            },
+            "method": {
+              "type": "string",
+              "description": "HTTP method.",
+              "enum": [
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE"
+              ]
+            },
+            "status_code": {
+              "type": "integer",
+              "description": "5xx status code returned.",
+              "minimum": 500,
+              "maximum": 599
+            },
+            "error_class": {
+              "type": "string",
+              "description": "High-level error classification, e.g. database_timeout, unhandled_exception, dependency_unavailable."
+            },
+            "occurrence_count": {
+              "type": "integer",
+              "description": "Number of identical failures collapsed into this event by the dedupe window.",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "backoffice_section_viewed": {
+      "$id": "#/eventSchemas/backoffice_section_viewed",
+      "type": "object",
+      "title": "backoffice_section_viewed",
+      "description": "We need to know which backoffice sections operators actually use, and which are ignored.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Identifier of the authenticated user who performed the action."
+        },
+        "event_type": {
+          "const": "backoffice_section_viewed"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "section"
+          ],
+          "properties": {
+            "section": {
+              "type": "string",
+              "description": "Identifier of the backoffice section/route, e.g. inventory_dashboard, incidents_list."
+            },
+            "office": {
+              "type": "string",
+              "description": "Office context of the acting user, if applicable.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            },
+            "referrer_section": {
+              "type": "string",
+              "description": "Section the user navigated from, for basic funnel/flow reconstruction."
+            }
+          }
+        }
+      }
+    },
+    "report_exported": {
+      "$id": "#/eventSchemas/report_exported",
+      "type": "object",
+      "title": "report_exported",
+      "description": "We need to know which reports operators actually export and how often, to prioritize which ones get built into the automated executive report first.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Identifier of the authenticated user who performed the action."
+        },
+        "event_type": {
+          "const": "report_exported"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "format",
+            "report_name"
+          ],
+          "properties": {
+            "report_name": {
+              "type": "string",
+              "description": "Identifier of the exported report, e.g. inventory_by_programme."
+            },
+            "office": {
+              "type": "string",
+              "description": "Office filter applied to the export, if any.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            },
+            "format": {
+              "type": "string",
+              "description": "Export format chosen.",
+              "enum": [
+                "csv",
+                "pdf",
+                "xlsx"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "incident_created": {
+      "$id": "#/eventSchemas/incident_created",
+      "type": "object",
+      "title": "incident_created",
+      "description": "We need to know how often operational incidents are logged, by severity and area, to see whether the system is stable enough to trust for business decisions.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Identifier of the authenticated user who performed the action."
+        },
+        "event_type": {
+          "const": "incident_created"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "area",
+            "severity"
+          ],
+          "properties": {
+            "severity": {
+              "type": "string",
+              "description": "Severity assigned at creation.",
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ]
+            },
+            "area": {
+              "type": "string",
+              "description": "System area the incident concerns, e.g. inventory, auth, suppliers."
+            },
+            "office": {
+              "type": "string",
+              "description": "Office context, if applicable.",
+              "enum": [
+                "valencia",
+                "miami"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "product_created": {
+      "$id": "#/eventSchemas/product_created",
+      "type": "object",
+      "title": "product_created",
+      "description": "We need to know how the material catalogue grows over time and by category, independent of stock movements.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Identifier of the authenticated user who performed the action."
+        },
+        "event_type": {
+          "const": "product_created"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "product_category",
+            "product_id",
+            "programme_id"
+          ],
+          "properties": {
+            "product_id": {
+              "type": "string",
+              "description": "Identifier of the newly created product."
+            },
+            "product_category": {
+              "type": "string",
+              "description": "Category of the new product.",
+              "enum": [
+                "training_kit",
+                "certification",
+                "onboarding_equipment"
+              ]
+            },
+            "programme_id": {
+              "type": "string",
+              "description": "Programme the product belongs to."
+            }
+          }
+        }
+      }
+    }
+  }
+}
