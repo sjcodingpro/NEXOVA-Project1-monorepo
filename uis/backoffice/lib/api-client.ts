@@ -1,4 +1,5 @@
 import { clearToken, getToken } from "@/lib/auth";
+import { track } from "@/lib/telemetry";
 
 function getBaseUrl(): string {
   const url = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
@@ -13,6 +14,36 @@ function getBaseUrl(): string {
     throw new Error("NEXT_PUBLIC_API_URL is not set. Check your .env.local.");
   }
   return url;
+}
+
+const API_LATENCY_SAMPLE_RATE = 1; // TODO: align with the throttle documented in telemetry-plan.md
+const TRACKED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+
+/** /inventory/products/12?x=1 -> /inventory/products/:id (route template, never raw URLs). */
+function routeTemplate(path: string): string {
+  return path
+    .split("?")[0]
+    .split("/")
+    .map((seg) => (/^\d+$/.test(seg) || /^[0-9a-f]{8}-[0-9a-f-]{27,}$/i.test(seg) ? ":id" : seg))
+    .join("/");
+}
+
+function recordApiCall(path: string, method: string | undefined, status: number, durationMs: number): void {
+  const verb = (method ?? "GET").toUpperCase();
+  if (!TRACKED_METHODS.includes(verb)) return;
+  const endpoint = routeTemplate(path);
+  if (Math.random() < API_LATENCY_SAMPLE_RATE) {
+    track("api_latency_recorded", { endpoint, method: verb, status_code: status, duration_ms: Math.round(durationMs), sampled: true });
+  }
+  if (status >= 500 && status <= 599) {
+    track("api_request_failed", {
+      endpoint,
+      method: verb,
+      status_code: status,
+      error_class: status === 500 ? "unhandled_exception" : "dependency_unavailable",
+      occurrence_count: 1,
+    });
+  }
 }
 
 interface ApiErrorBody {
@@ -52,11 +83,13 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   };
 
   let res: Response;
+  const startedAt = performance.now();
   try {
     res = await fetch(`${baseUrl}${path}`, { ...init, headers });
   } catch {
     throw new Error("Could not reach the API. Is the server running?");
   }
+  recordApiCall(path, init?.method, res.status, performance.now() - startedAt);
 
   if (res.status === 401) {
     if (token) {
