@@ -6,6 +6,16 @@ import Link from "next/link";
 import { useRequireAuth } from "@/lib/useRequireAuth";
 import { inventoryApi } from "@/lib/inventory";
 import type { Asset, Office } from "@/types/inventory";
+import { track } from "@/lib/telemetry";
+import {
+  COST_VARIANCE_THRESHOLD,
+  checkCostVariance,
+  currencyFor,
+  officeId,
+  programmeFor,
+  supplierId,
+  telemetryCategory,
+} from "@/lib/telemetry-domain";
 
 const OFFICES: Office[] = ["Valencia", "Miami"];
 
@@ -34,6 +44,7 @@ function InboundOrderForm() {
   const [assetId, setAssetId] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("");
   const [supplier, setSupplier] = useState("");
+  const [unitCost, setUnitCost] = useState<string>("");
   const [office, setOffice] = useState<Office>("Valencia");
 
   const [submitting, setSubmitting] = useState(false);
@@ -70,31 +81,70 @@ function InboundOrderForm() {
     setSubmitSuccess(false);
 
     const parsedQuantity = Number(quantity);
+    const parsedCost = Number(unitCost);
+    const invalid = (field: string, code: string) =>
+      track("validation_error_raised", {
+        office: officeId(office),
+        form_name: "inbound_order_form",
+        field_name: field,
+        error_code: code,
+      });
     if (!assetId) {
+      invalid("asset_id", "required");
       setSubmitError("Select an asset.");
       return;
     }
     if (!Number.isFinite(parsedQuantity) || parsedQuantity <= 0) {
+      invalid("quantity", "min_quantity");
       setSubmitError("Quantity must be a positive number.");
       return;
     }
     if (!supplier.trim()) {
+      invalid("supplier", "required");
       setSubmitError("Supplier is required.");
+      return;
+    }
+    if (!Number.isFinite(parsedCost) || parsedCost <= 0) {
+      invalid("unit_cost", "min_unit_cost");
+      setSubmitError("Unit cost must be a positive number.");
       return;
     }
 
     setSubmitting(true);
     try {
-      await inventoryApi.createInboundOrder({
+      const asset = products.find((p) => String(p.id) === assetId);
+      const entry = await inventoryApi.createInboundOrder({
         asset_id: Number(assetId),
         quantity: parsedQuantity,
         supplier: supplier.trim(),
         office,
       });
+      if (asset) {
+        const base = {
+          office: officeId(office),
+          product_id: asset.sku,
+          product_category: telemetryCategory(asset.category),
+          programme_id: programmeFor(asset.sku, asset.category),
+          currency: currencyFor(office),
+          supplier_id: supplierId(supplier),
+          unit_cost: parsedCost,
+        };
+        track("inbound_order_created", { ...base, quantity: parsedQuantity, order_id: String(entry.id) });
+        const variance = checkCostVariance(asset.sku, supplier, parsedCost);
+        if (variance) {
+          track("kit_cost_variance_detected", {
+            ...base,
+            historical_unit_cost: variance.historical,
+            variance_pct: variance.variancePct,
+            threshold_pct: COST_VARIANCE_THRESHOLD,
+          });
+        }
+      }
       setSubmitSuccess(true);
       setAssetId("");
       setQuantity("");
       setSupplier("");
+      setUnitCost("");
       setOffice("Valencia");
       void fetchProducts(); // refresh stock numbers for the next entry
     } catch (err) {
@@ -162,6 +212,20 @@ function InboundOrderForm() {
               value={supplier}
               onChange={(e) => setSupplier(e.target.value)}
               placeholder="e.g. TechDistrib Valencia S.L."
+              className="w-full bg-slate-900 border border-slate-800 rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm text-slate-400 mb-1">
+              Unit cost ({currencyFor(office)})
+            </label>
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={unitCost}
+              onChange={(e) => setUnitCost(e.target.value)}
               className="w-full bg-slate-900 border border-slate-800 rounded-md px-3 py-2 text-sm"
             />
           </div>

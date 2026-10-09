@@ -16,7 +16,7 @@ function getBaseUrl(): string {
   return url;
 }
 
-const API_LATENCY_SAMPLE_RATE = 1; // TODO: align with the throttle documented in telemetry-plan.md
+const API_LATENCY_SAMPLE_RATE = 0.1; // plan: 10% normally, 100% of 5xx
 const TRACKED_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 
 /** /inventory/products/12?x=1 -> /inventory/products/:id (route template, never raw URLs). */
@@ -28,14 +28,15 @@ function routeTemplate(path: string): string {
     .join("/");
 }
 
-function recordApiCall(path: string, method: string | undefined, status: number, durationMs: number): void {
+export function recordApiCall(path: string, method: string | undefined, status: number, durationMs: number): void {
   const verb = (method ?? "GET").toUpperCase();
   if (!TRACKED_METHODS.includes(verb)) return;
   const endpoint = routeTemplate(path);
-  if (Math.random() < API_LATENCY_SAMPLE_RATE) {
-    track("api_latency_recorded", { endpoint, method: verb, status_code: status, duration_ms: Math.round(durationMs), sampled: true });
+  const serverError = status >= 500 && status <= 599;
+  if (serverError || Math.random() < API_LATENCY_SAMPLE_RATE) {
+    track("api_latency_recorded", { endpoint, method: verb, status_code: status, duration_ms: Math.round(durationMs), sampled: !serverError });
   }
-  if (status >= 500 && status <= 599) {
+  if (serverError) {
     track("api_request_failed", {
       endpoint,
       method: verb,
