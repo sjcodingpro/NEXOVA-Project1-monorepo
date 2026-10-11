@@ -1,10 +1,13 @@
 import logging
+import time
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException, status
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.telemetry.analysis import build_report
 from app.telemetry.models import TelemetryEvent
 from app.telemetry.repository import bulk_insert_telemetry
 
@@ -89,3 +92,55 @@ def receive_events(payload: dict[str, Any] = Body(...)):
 
     logger.info("telemetry: received %d, stored %d, rejected %d", len(events), stored, rejected)
     return {"received": len(events), "stored": stored, "rejected": rejected}
+
+
+CACHE_TTL_SECONDS = 60
+_REPORT_CACHE: dict[tuple, tuple[float, dict[str, Any]]] = {}
+
+
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
+@router.get("/report")
+def get_report(start_date: datetime | None = None, end_date: datetime | None = None):
+    """Technical report: operational metrics computed from stored events.
+
+    The default period (last 7 days, UTC) is resolved here, once, and passed
+    to every metric function. The pipeline does not run on every request:
+    results are cached for 60 seconds per requested (start_date, end_date).
+    """
+    start_requested = _as_utc(start_date) if start_date else None
+    end_requested = _as_utc(end_date) if end_date else None
+    # Keyed on what was REQUESTED (None = default), so default requests can hit the cache.
+    cache_key = (start_requested, end_requested)
+
+    cached = _REPORT_CACHE.get(cache_key)
+    if cached and time.monotonic() - cached[0] < CACHE_TTL_SECONDS:
+        logger.info("telemetry report: cache hit")
+        return cached[1]
+
+    end = end_requested or datetime.now(timezone.utc)
+    start = start_requested or end - timedelta(days=7)
+    if start >= end:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date must be before end_date.",
+        )
+
+    try:
+        report = build_report(start, end)
+    except SQLAlchemyError:
+        logger.exception("telemetry report: query failed")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Telemetry storage unavailable.",
+        )
+
+    if len(_REPORT_CACHE) >= 100:
+        _REPORT_CACHE.clear()
+    _REPORT_CACHE[cache_key] = (time.monotonic(), report)
+    logger.info("telemetry report: computed (cache miss)")
+    return report
