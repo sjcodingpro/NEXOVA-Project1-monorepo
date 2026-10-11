@@ -17,7 +17,7 @@ const ALLOWED_PROPERTIES: Record<string, readonly string[]> = {
   stock_threshold_triggered: ["office", "product_id", "product_category", "programme_id", "currency", "current_stock", "minimum_threshold"],
   direct_stock_edit_rejected: ["office", "product_id", "product_category", "programme_id", "currency", "attempted_quantity", "rejection_reason"],
   kit_cost_variance_detected: ["office", "product_id", "product_category", "programme_id", "currency", "supplier_id", "unit_cost", "historical_unit_cost", "variance_pct", "threshold_pct"],
-  login_failed: ["office", "attempted_username_hash", "failure_reason", "attempt_count"],
+  login_failed: ["office", "failure_reason", "attempt_count"],
   login_succeeded: ["office", "role"],
   session_expired: ["office", "session_duration_seconds", "last_section"],
   api_latency_recorded: ["endpoint", "method", "status_code", "duration_ms", "sampled"],
@@ -183,4 +183,16 @@ export function track(eventType: string, properties: Record<string, unknown>): v
   } catch {
     // telemetry must never break the app
   }
+}
+
+/** Role claim of the current session token, or null. Used by auth events. */
+export function currentRole(): string | null {
+  const role = decodeTokenPayload(getToken())?.role;
+  return typeof role === "string" ? role : null;
+}
+
+/** Seconds since the current token was issued (session age), or null. */
+export function sessionAgeSeconds(): number | null {
+  const iat = decodeTokenPayload(getToken())?.iat;
+  return typeof iat === "number" ? Math.max(0, Math.round(Date.now() / 1000 - iat)) : null;
 }

@@ -889,3 +889,26 @@ failures (`api_request_failed`) but had no event for errors thrown in the browse
   }
 }
 ```
+
+
+---
+
+## Amendment: authentication events (instrumented after the capture phase)
+
+Schema version stays `1.0.0`. These changes only relax or remove fields.
+
+Users have no `office` attribute and the login form cannot know one before sign-in, so
+`office` is now **optional** on `login_succeeded`, `login_failed` and `session_expired`.
+
+`login_failed` no longer carries `attempted_username_hash`: the capture README forbids sending
+the value a user typed, and a hash of an email is still derived from it. `failure_reason` now
+allows `invalid_credentials` and `network_error` (the account-lock reasons stay allowed but are
+not emitted, because the API has no lockout).
+
+Known limits: `attempt_count` is always 1 (the 5-second debounce described for this event is not
+implemented), and any failed login that is not a network error is reported as `invalid_credentials`.
+
+- `login_succeeded`: emitted by the login page after the token is stored. `role` comes from the token.
+- `login_failed`: emitted by the login page. Only the failure reason is sent.
+- `session_expired`: emitted by the API wrappers when a request with a stored token gets a 401.
+  `session_expired` duration is the age of the token.

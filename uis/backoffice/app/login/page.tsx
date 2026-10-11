@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { login } from "@/lib/auth-api";
 import { setToken } from "@/lib/auth";
+import { currentRole, track } from "@/lib/telemetry";
 
 function LoginForm() {
   const router = useRouter();
@@ -23,8 +24,15 @@ function LoginForm() {
     try {
       const result = await login({ email, password });
       setToken(result.access_token);
+      track("login_succeeded", { role: currentRole() });
       router.push("/account/profile");
     } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      // Only the failure reason is sent, never the email or password.
+      track("login_failed", {
+        failure_reason: message.startsWith("Could not reach") ? "network_error" : "invalid_credentials",
+        attempt_count: 1,
+      });
       setError(err instanceof Error ? err.message : "Login failed.");
     } finally {
       setSubmitting(false);
