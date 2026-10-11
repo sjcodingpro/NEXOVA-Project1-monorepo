@@ -127,3 +127,14 @@ async def create_outbound_order(
 @router.get("/orders", response_model=List[OrderOut])
 async def list_orders(db: Session = Depends(get_db)):
     return service.list_orders(db)
+
+
+@router.patch("/products/{asset_id}/stock")
+async def reject_direct_stock_edit(asset_id: int, _user=Depends(get_current_user)):
+    """Stock is derived from inbound/outbound orders and is never edited
+    directly (CONTEXT section 6). This route exists so an attempt is
+    rejected explicitly, and the frontend can record it in telemetry."""
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Stock cannot be edited directly. Register an inbound or outbound order instead.",
+    )

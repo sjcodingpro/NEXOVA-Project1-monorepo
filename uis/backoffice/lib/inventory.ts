@@ -125,6 +125,14 @@ export const inventoryApi = {
     });
   },
 
+  // Always rejected by the API (403): stock only changes through orders.
+  adjustStock(id: number, quantity: number): Promise<void> {
+    return inventoryFetch<void>(`/inventory/products/${id}/stock`, {
+      method: "PATCH",
+      body: JSON.stringify({ quantity }),
+    });
+  },
+
   listOrders(): Promise<Order[]> {
     return inventoryFetch<Order[]>("/inventory/orders");
   },

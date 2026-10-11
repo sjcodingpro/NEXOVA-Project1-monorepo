@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRequireAuth } from "@/lib/useRequireAuth";
 import { inventoryApi } from "@/lib/inventory";
 import type { Asset } from "@/types/inventory";
+import { track } from "@/lib/telemetry";
+import { currencyFor, officeId, programmeFor, telemetryCategory } from "@/lib/telemetry-domain";
 
 const CATEGORY_LABELS: Record<string, string> = {
   hardware: "Hardware",
@@ -35,6 +37,7 @@ export default function InventoryProductsPage() {
   const [products, setProducts] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -54,6 +57,34 @@ export default function InventoryProductsPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchProducts();
   }, [authed, fetchProducts]);
+
+  async function handleAdjustStock(p: Asset) {
+    const input = window.prompt(`Change stock for ${p.name} by how many units? (e.g. 5 or -3)`);
+    if (input === null) return;
+    const delta = Number.parseInt(input, 10);
+    if (!Number.isInteger(delta) || delta === 0) {
+      setNotice("Enter a whole number other than 0.");
+      return;
+    }
+    setNotice(null);
+    try {
+      await inventoryApi.adjustStock(p.id, delta);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.startsWith("Stock cannot be edited directly")) {
+        track("direct_stock_edit_rejected", {
+          office: officeId(p.office),
+          product_id: p.sku,
+          product_category: telemetryCategory(p.category),
+          programme_id: programmeFor(p.sku, p.category),
+          currency: currencyFor(p.office),
+          attempted_quantity: delta,
+          rejection_reason: "direct_edit_not_allowed",
+        });
+      }
+      setNotice(message || "Could not adjust stock.");
+    }
+  }
 
   if (!authed) return null;
 
@@ -84,6 +115,12 @@ export default function InventoryProductsPage() {
           </Link>
         </div>
       </div>
+
+      {notice && (
+        <div className="mt-6 border border-amber-900 bg-amber-950/50 text-amber-300 text-sm rounded-md px-4 py-3">
+          {notice}
+        </div>
+      )}
 
       {loading && <p className="mt-6 text-sm text-slate-400">Loading assets...</p>}
 
@@ -140,6 +177,12 @@ export default function InventoryProductsPage() {
                       >
                         Log exit
                       </Link>
+                      <button
+                        onClick={() => void handleAdjustStock(p)}
+                        className="text-slate-400 hover:text-slate-200 underline text-xs ml-3"
+                      >
+                        Adjust stock
+                      </button>
                     </td>
                   </tr>
                 );
