@@ -1,5 +1,6 @@
 import { clearToken, getToken } from "@/lib/auth";
 import { recordApiCall } from "@/lib/api-client";
+import { sessionAgeSeconds, track } from "@/lib/telemetry";
 import type {
   Asset,
   AssetCreatePayload,
@@ -69,6 +70,10 @@ async function inventoryFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (res.status === 401) {
     if (token) {
+      const sessionSeconds = sessionAgeSeconds();
+      if (sessionSeconds !== null) {
+        track("session_expired", { session_duration_seconds: sessionSeconds });
+      }
       clearToken();
       if (typeof window !== "undefined") {
         window.location.href = "/login";

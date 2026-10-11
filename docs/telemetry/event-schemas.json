@@ -689,9 +689,7 @@
           "additionalProperties": false,
           "required": [
             "attempt_count",
-            "attempted_username_hash",
-            "failure_reason",
-            "office"
+            "failure_reason"
           ],
           "properties": {
             "office": {
@@ -702,15 +700,12 @@
                 "miami"
               ]
             },
-            "attempted_username_hash": {
-              "type": "string",
-              "description": "SHA-256 hash of the attempted username/email. Never the raw value."
-            },
             "failure_reason": {
               "type": "string",
               "description": "Why authentication failed.",
               "enum": [
                 "invalid_credentials",
+                "network_error",
                 "account_locked",
                 "account_disabled"
               ]
@@ -777,7 +772,6 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "office",
             "role"
           ],
           "properties": {
@@ -850,7 +844,6 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "office",
             "session_duration_seconds"
           ],
           "properties": {

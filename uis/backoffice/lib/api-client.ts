@@ -1,5 +1,5 @@
 import { clearToken, getToken } from "@/lib/auth";
-import { track } from "@/lib/telemetry";
+import { sessionAgeSeconds, track } from "@/lib/telemetry";
 
 function getBaseUrl(): string {
   const url = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/$/, "");
@@ -97,6 +97,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
       // We believed we had an active session (a token was attached),
       // but the server disagrees -- this is a real session-expiry
       // case. Clear it and force a re-login.
+      const sessionSeconds = sessionAgeSeconds();
+      if (sessionSeconds !== null) {
+        track("session_expired", { session_duration_seconds: sessionSeconds });
+      }
       clearToken();
       if (typeof window !== "undefined") {
         // A full navigation (not router.push) is intentional here:
