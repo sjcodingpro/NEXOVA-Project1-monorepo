@@ -14,6 +14,7 @@ dependencies = [
     "python-dotenv>=1.2.3",
     "sqlmodel>=0.0.33",
     "psycopg2-binary>=2.9.13",
+    "pandas>=3.0.6",
 ]
 
 [project.scripts]
