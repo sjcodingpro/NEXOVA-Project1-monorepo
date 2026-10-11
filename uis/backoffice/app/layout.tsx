@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import NavAuthLinks from "@/components/NavAuthLinks";
+import TelemetryProvider from "@/components/TelemetryProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-slate-950 text-slate-100 antialiased">
+        <TelemetryProvider />
         <div className="min-h-screen flex flex-col">
           <header className="border-b border-slate-800 px-6 py-4">
             <div className="flex items-center justify-between">

@@ -843,3 +843,49 @@ The machine-readable form of every event above lives in
 Every event schema sets `additionalProperties: false` at both the envelope level and inside
 `properties`, so an event that doesn't match its documented allowlist fails validation rather
 than silently passing through with extra fields.
+
+
+---
+
+## Amendment: `frontend_error_raised` (added during the capture phase)
+
+Schema version stays `1.0.0`: this is an additive change (a new event, no existing
+event modified).
+
+The capture phase requires tracking uncaught frontend errors as part of the
+cross-cutting technical baseline. The original catalogue covered server-side
+failures (`api_request_failed`) but had no event for errors thrown in the browser.
+
+### `frontend_error_raised`
+
+**Category:** Errors / technical · **Status:** Identified (added after approval) · **Actor:** User session
+
+- **Fires when:** an uncaught error (`window.onerror`) or unhandled promise rejection reaches the browser.
+- **Business/operational hypothesis:** "We capture `frontend_error_raised` because we need to know how often uncaught errors reach users in the backoffice and in which section, which allows us to decide which broken screens to fix first."
+- **Decision it enables:** prioritise frontend bug fixes by section.
+- **Delivery:** **BATCH**. A fix is a planned task, not a minutes-level alert.
+- **Throttle/debounce:** none in v1. An error loop could produce many events; a per-(error_class, section) dedupe window is a follow-up.
+- **Contains PII/sensitive data:** No. Only the error class name is captured, never the message or stack trace, since messages can echo user input.
+
+| Property | Type | Required | Description |
+|---|---|---|---|
+| `error_class` | `string` | yes | Error constructor name only (e.g. `TypeError`). |
+| `source` | `string` | yes | Allowed values: `window_onerror`, `unhandledrejection`. |
+| `section` | `string` | no | Backoffice section the user was on, if known. |
+
+```json
+{
+  "eventId": "7d3f1c0e-5a1b-4b7e-9d2a-3c1f0a9b2e44",
+  "timestamp": "2026-10-11T18:55:44.396Z",
+  "sessionId": "38e3bc30-9d62-4ac8-8a73-a326d7cc4c8d",
+  "userId": "3",
+  "event_type": "frontend_error_raised",
+  "schemaVersion": "1.0.0",
+  "requestId": "b5cc3f11-11cc-44c1-a8f9-a1295b2257b9",
+  "properties": {
+    "error_class": "Error",
+    "source": "window_onerror",
+    "section": "inbound_order_form"
+  }
+}
+```

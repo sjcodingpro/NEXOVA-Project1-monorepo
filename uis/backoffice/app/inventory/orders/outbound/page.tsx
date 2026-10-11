@@ -6,8 +6,25 @@ import Link from "next/link";
 import { useRequireAuth } from "@/lib/useRequireAuth";
 import { inventoryApi } from "@/lib/inventory";
 import type { Asset, ExitType, Office } from "@/types/inventory";
+import { track } from "@/lib/telemetry";
+import {
+  MINIMUM_STOCK_THRESHOLD,
+  RECIPIENT_ROLES,
+  type RecipientRole,
+  currencyFor,
+  officeId,
+  programmeFor,
+  telemetryCategory,
+} from "@/lib/telemetry-domain";
 
 const OFFICES: Office[] = ["Valencia", "Miami"];
+
+const ROLE_LABELS: Record<RecipientRole, string> = {
+  client: "Client",
+  candidate: "Candidate",
+  consultant: "Consultant",
+  support_agent: "Support agent",
+};
 
 // Same Suspense requirement as the inbound form -- see its comment.
 export default function OutboundOrderPage() {
@@ -30,6 +47,7 @@ function OutboundOrderForm() {
   const [quantity, setQuantity] = useState<string>("");
   const [exitType, setExitType] = useState<ExitType>("consumption");
   const [assignedTo, setAssignedTo] = useState("");
+  const [recipientRole, setRecipientRole] = useState<RecipientRole>("client");
   const [office, setOffice] = useState<Office>("Valencia");
 
   const [submitting, setSubmitting] = useState(false);
@@ -79,16 +97,26 @@ function OutboundOrderForm() {
     e.preventDefault();
     setSubmitError(null);
     setSubmitSuccess(false);
+    const invalid = (field: string, code: string) =>
+      track("validation_error_raised", {
+        office: officeId(office),
+        form_name: "outbound_order_form",
+        field_name: field,
+        error_code: code,
+      });
 
     if (!assetId) {
+      invalid("asset_id", "required");
       setSubmitError("Select an asset.");
       return;
     }
     if (!Number.isFinite(parsedQuantity) || parsedQuantity <= 0) {
+      invalid("quantity", "min_quantity");
       setSubmitError("Quantity must be a positive number.");
       return;
     }
     if (exitType === "allocation" && !assignedTo.trim()) {
+      invalid("assigned_to", "required");
       setSubmitError("Assigned to is required for an allocation.");
       return;
     }
@@ -105,18 +133,45 @@ function OutboundOrderForm() {
 
     setSubmitting(true);
     try {
-      await inventoryApi.createOutboundOrder({
+      const asset = selectedAsset;
+      const stockBefore = asset?.current_stock ?? 0;
+      const exit = await inventoryApi.createOutboundOrder({
         asset_id: Number(assetId),
         quantity: parsedQuantity,
         exit_type: exitType,
         assigned_to: exitType === "allocation" ? assignedTo.trim() : null,
         office,
       });
+      if (asset) {
+        const base = {
+          office: officeId(office),
+          product_id: asset.sku,
+          product_category: telemetryCategory(asset.category),
+          programme_id: programmeFor(asset.sku, asset.category),
+          currency: currencyFor(office),
+        };
+        // recipient_role only: assigned_to is a person's name and is never sent.
+        track("outbound_order_created", {
+          ...base,
+          quantity: parsedQuantity,
+          recipient_role: recipientRole,
+          order_id: String(exit.id),
+        });
+        const stockAfter = stockBefore - parsedQuantity;
+        if (stockBefore >= MINIMUM_STOCK_THRESHOLD && stockAfter < MINIMUM_STOCK_THRESHOLD) {
+          track("stock_threshold_triggered", {
+            ...base,
+            current_stock: stockAfter,
+            minimum_threshold: MINIMUM_STOCK_THRESHOLD,
+          });
+        }
+      }
       setSubmitSuccess(true);
       setAssetId("");
       setQuantity("");
       setExitType("consumption");
       setAssignedTo("");
+      setRecipientRole("client");
       setOffice("Valencia");
       void fetchProducts(); // refresh stock numbers immediately
     } catch (err) {
@@ -218,6 +273,21 @@ function OutboundOrderForm() {
               />
             </div>
           )}
+
+          <div>
+            <label className="block text-sm text-slate-400 mb-1">Recipient role</label>
+            <select
+              value={recipientRole}
+              onChange={(e) => setRecipientRole(e.target.value as RecipientRole)}
+              className="w-full bg-slate-900 border border-slate-800 rounded-md px-3 py-2 text-sm"
+            >
+              {RECIPIENT_ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {ROLE_LABELS[r]}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div>
             <label className="block text-sm text-slate-400 mb-1">Office</label>

@@ -1462,6 +1462,83 @@
           }
         }
       }
+    },
+    "frontend_error_raised": {
+      "$id": "#/eventSchemas/frontend_error_raised",
+      "type": "object",
+      "title": "frontend_error_raised",
+      "description": "We need to know how often uncaught errors reach users in the backoffice and in which section, to prioritise fixes.",
+      "additionalProperties": false,
+      "required": [
+        "eventId",
+        "timestamp",
+        "sessionId",
+        "userId",
+        "event_type",
+        "schemaVersion",
+        "requestId",
+        "properties"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this event instance."
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the event occurred."
+        },
+        "sessionId": {
+          "type": "string",
+          "description": "Session the event belongs to. For system-emitted events, the triggering request's session if any, otherwise a synthetic job session id."
+        },
+        "userId": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Identifier of the authenticated user, or null if the error occurred before login."
+        },
+        "event_type": {
+          "const": "frontend_error_raised"
+        },
+        "schemaVersion": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "requestId": {
+          "type": "string",
+          "description": "Correlation id joining frontend, backend and logs for this action."
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "error_class",
+            "source"
+          ],
+          "properties": {
+            "error_class": {
+              "type": "string",
+              "description": "Error constructor name only (e.g. TypeError). Never the message or stack trace."
+            },
+            "source": {
+              "type": "string",
+              "description": "Capture hook that observed the error.",
+              "enum": [
+                "window_onerror",
+                "unhandledrejection"
+              ]
+            },
+            "section": {
+              "type": "string",
+              "description": "Backoffice section the user was on when the error occurred, if known."
+            }
+          }
+        }
+      }
     }
   }
 }

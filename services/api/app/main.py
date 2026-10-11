@@ -21,6 +21,7 @@ from app.auth.router import router as auth_router
 from app.users.router import router as users_router
 from app.profiles.router import router as profiles_router
 from app.inventory.router import router as inventory_router
+from app.telemetry.router import router as telemetry_router
 
 logger = logging.getLogger("nexova_api")
 
@@ -49,6 +50,7 @@ app.include_router(auth_router)
 app.include_router(users_router)
 app.include_router(profiles_router)
 app.include_router(inventory_router)
+app.include_router(telemetry_router)
 
 
 @app.on_event("startup")

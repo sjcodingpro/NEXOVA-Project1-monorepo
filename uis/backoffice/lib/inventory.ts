@@ -1,4 +1,5 @@
 import { clearToken, getToken } from "@/lib/auth";
+import { recordApiCall } from "@/lib/api-client";
 import type {
   Asset,
   AssetCreatePayload,
@@ -58,11 +59,13 @@ async function inventoryFetch<T>(path: string, init?: RequestInit): Promise<T> {
   };
 
   let res: Response;
+  const startedAt = performance.now();
   try {
     res = await fetch(`${baseUrl}${path}`, { ...init, headers });
   } catch {
     throw new Error("Could not reach the inventory service. Check your connection.");
   }
+  recordApiCall(path, init?.method, res.status, performance.now() - startedAt);
 
   if (res.status === 401) {
     if (token) {
@@ -119,6 +122,14 @@ export const inventoryApi = {
     return inventoryFetch<AssetExit>("/inventory/orders/outbound", {
       method: "POST",
       body: JSON.stringify(payload),
+    });
+  },
+
+  // Always rejected by the API (403): stock only changes through orders.
+  adjustStock(id: number, quantity: number): Promise<void> {
+    return inventoryFetch<void>(`/inventory/products/${id}/stock`, {
+      method: "PATCH",
+      body: JSON.stringify({ quantity }),
     });
   },
 
