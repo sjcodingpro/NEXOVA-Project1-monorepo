@@ -42,6 +42,9 @@ export default function RootLayout({
                 <Link href="/inventory/products" className="text-slate-300 hover:text-white">
                   Inventory
                 </Link>
+                <Link href="/reporting" className="text-slate-300 hover:text-white">
+                  Reporting
+                </Link>
                 <NavAuthLinks />
               </nav>
             </div>
