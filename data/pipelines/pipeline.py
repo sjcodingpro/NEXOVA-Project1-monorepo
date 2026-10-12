@@ -79,11 +79,40 @@ def finish_pipeline_run(run_id, status, checkpoint, stats, error_summary=None):
     db.finish_run(run_id, status, checkpoint, stats, error_summary)
 
 
-# --- Flow --------------------------------------------------------------------
+# --- Subflows ----------------------------------------------------------------
+# One independent flow per phase, with explicit inputs and outputs (no globals).
+
+@flow(name="extract_telemetry_events_subflow")
+def extract_telemetry_events_subflow(window_from, window_to):
+    """Extraction phase: the four mandatory telemetry events in the window."""
+    return extract_telemetry_events(window_from, window_to)
+
+
+@flow(name="transform_weekly_kpis_subflow")
+def transform_weekly_kpis_subflow(raw, window_from, window_to):
+    """Transformation phase: Material Cost per Office/Programme, Kits Delivered,
+    Shortage Frequency and Cost Variance Frequency per office, programme and week."""
+    return transform_weekly_kpis(raw, window_from, window_to)
+
+
+@flow(name="load_weekly_office_program_performance_subflow")
+def load_weekly_office_program_performance_subflow(result):
+    """Load phase: idempotent upsert into reporting.weekly_office_program_performance."""
+    return load_weekly_office_program_performance(result)
+
+
+@flow(name="export_eval_snapshot_subflow")
+def export_eval_snapshot_subflow(result, run_id):
+    """Optional phase: snapshot of the aggregated rows for data/eval/."""
+    return export_eval_snapshot_optional(result, run_id)
+
+
+# --- Main flow -----------------------------------------------------------------
 
 @flow(name="weekly_office_performance_flow")
 def weekly_office_performance_flow(weeks_back: int = 3, trigger: str = "schedule",
                                    run_id: str | None = None):
+    """Coordinates the subflows; the ETL logic lives in the tasks and subflows above."""
     logger = get_run_logger()
     weeks_back = max(1, min(int(weeks_back), 12))
     run_id = run_id or str(uuid.uuid4())
@@ -99,21 +128,21 @@ def weekly_office_performance_flow(weeks_back: int = 3, trigger: str = "schedule
 
     checkpoint, stats = "started", {}
     try:
-        raw = extract_telemetry_events(window_from, window_to)
+        raw = extract_telemetry_events_subflow(window_from, window_to)
         checkpoint = "extracted"
         db.set_checkpoint(run_id, checkpoint)
 
-        result, transform_stats = transform_weekly_kpis(raw, window_from, window_to)
+        result, transform_stats = transform_weekly_kpis_subflow(raw, window_from, window_to)
         stats.update(transform_stats)
         checkpoint = "transformed"
         db.set_checkpoint(run_id, checkpoint)
 
-        stats.update(load_weekly_office_program_performance(result))
+        stats.update(load_weekly_office_program_performance_subflow(result))
         checkpoint = "loaded"
 
-        # Optional task: return_state=True, so its failure is handled here
-        # instead of propagating and stopping the flow.
-        snapshot = export_eval_snapshot_optional(result, run_id, return_state=True)
+        # Optional subflow: return_state=True, so its failure is handled here
+        # instead of propagating and stopping the run.
+        snapshot = export_eval_snapshot_subflow(result, run_id, return_state=True)
         if snapshot.is_failed():
             logger.warning("Eval snapshot skipped (non-critical): the main run continues")
 

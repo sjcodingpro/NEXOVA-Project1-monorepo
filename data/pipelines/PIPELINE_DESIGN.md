@@ -395,3 +395,32 @@ The script reads `DATABASE_URL` from `services/api/.env`. The SQL that creates t
 - The manual trigger starts the flow in a background thread and returns 202 with the `run_id`.
 - `pydantic` is no longer pinned to 2.9.2 in `services/api/pyproject.toml`; Prefect 3 requires `pydantic>=2.10`.
 - Open packaging point: `data/` is outside `services/api`, so the Docker image does not contain it. The reporting endpoints import the pipeline lazily and return 503 if it is missing; shipping it in the image needs a wider build context.
+
+## 14. Part 3 implementation notes
+
+### 14.1 Subflows
+
+`weekly_office_performance_flow` is now a coordinator. The ETL work lives in four subflows in `data/pipelines/pipeline.py`. Each one receives its input as parameters and returns its output, with no shared globals, so each can run on its own.
+
+| Subflow | Phase | Input | Output |
+|---|---|---|---|
+| `extract_telemetry_events_subflow` | Extraction | window start and end | raw events DataFrame |
+| `transform_weekly_kpis_subflow` | Transformation | raw events, window | one row per office, programme and week, plus run stats |
+| `load_weekly_office_program_performance_subflow` | Load | aggregated rows | rows inserted and updated |
+| `export_eval_snapshot_subflow` | Optional | aggregated rows, run id | path of the snapshot file |
+
+The optional subflow is called with `return_state=True`, so a failure in it logs a warning and never stops the run. The run command from section 13.1 is unchanged.
+
+### 14.2 Unit tests
+
+`tests/pipelines/test_pipeline.py` has 10 tests of the transformation, using in-memory events shaped like the telemetry events (no database, no Prefect runtime). There is one test per KPI (Material Cost per Office/Programme, Kits Delivered, Shortage Frequency, Cost Variance Frequency), one defensive test for malformed events, and one test that reproduces the CONTEXT example by hand: 50 units at 24.81 give 1240.50 EUR, with 18 kits and 1 shortage. Run them with:
+
+    cd services/api && uv run python -m pytest ../../tests/pipelines/test_pipeline.py -v
+
+### 14.3 Dashboard
+
+The page `/reporting` in `uis/backoffice/app/reporting/page.tsx` reads `GET /reporting/weekly-office-program-performance` and shows the four KPIs under their CONTEXT names, with the week it covers and Previous and Next week buttons. It sits behind the same login as the rest of the backoffice, keeps EUR and USD separate, and never adds them together.
+
+### 14.4 Additional enhancements
+
+None were added in Part 3. The single-run guard that answers the Concurrent runs design question was already built in Part 2 (section 13.3).
