@@ -351,3 +351,47 @@ KPI response shape (values illustrative):
 | Prefect: one flow, three or more tasks, states, blocks | 8 |
 | Three endpoints and the functions they import | 9 |
 | Consistent with telemetry events and CONTEXT | 1, 2, 3 |
+
+## 13. Part 2 implementation notes
+
+### 13.1 How to run
+
+Run from the repository root:
+
+    cd services/api && uv run python ../../data/pipelines/pipeline.py
+    cd services/api && uv run python ../../data/pipelines/pipeline.py --weeks-back 12 --trigger manual
+
+Schedule: every Monday at 05:00 UTC (`0 5 * * 1`), before the working day in Valencia and Miami. Until a Prefect deployment exists, the same schedule runs from cron:
+
+    0 5 * * 1 cd /path/to/NEXOVA-Project1-monorepo/services/api && uv run python ../../data/pipelines/pipeline.py
+
+The script reads `DATABASE_URL` from `services/api/.env`. The SQL that creates the `reporting` tables is in `data/pipelines/sql/001_reporting_schema.sql`.
+
+### 13.2 Where the code lives
+
+| Piece | File |
+|---|---|
+| Flow `weekly_office_performance_flow`, six tasks, command-line entry point, `trigger_pipeline_run` | `data/pipelines/pipeline.py` |
+| Run log, extract query, idempotent upsert, KPI and latest-run queries | `data/pipelines/pipeline_db.py` |
+| Pure transform (steps 1 to 8 of section 4) | `data/process/weekly_office_performance.py` |
+| Optional snapshot output | `data/eval/weekly_office_performance_last_run.csv` |
+| Endpoints (no ETL logic) | `services/api/app/reporting/router.py` |
+
+### 13.3 Resilience as implemented
+
+- Retries: `start_pipeline_run` and `finish_pipeline_run` 2 x 5 s; `extract_telemetry_events` 3 x 30 s; `load_weekly_office_program_performance` 2 x 10 s. The transform has no retries because it is pure and deterministic.
+- Caching: `transform_weekly_kpis` uses `cache_key_fn` (window start, window end and number of extracted rows) with `cache_expiration` of 1 hour. A re-run over the same data reuses the result; a late event changes the row count and forces a recompute.
+- Partial failure: `export_eval_snapshot_optional` is called with `return_state=True`. If it fails the flow logs a warning and the main run still finishes as `success`.
+- Idempotent load: a single-transaction upsert on `(office, programme_id, week_start)` that only touches rows whose values changed. Verified live: three consecutive runs left exactly 6 rows, with 0 inserted and 0 updated on the second and third runs.
+- Single-run guard: a partial unique index on `reporting.pipeline_runs` allows only one `running` row. An overlapping run is recorded as `skipped`; a run stuck for more than 30 minutes is marked `failed`.
+- Execution log: one row per run in `reporting.pipeline_runs` with every field from section 7, except `reconciliation`, which is left null in v1.
+
+### 13.4 Differences from the design
+
+- No staging table. The single-transaction upsert gives the same guarantee, so the extra table was dropped.
+- No resume from checkpoint. The checkpoint is recorded at each stage for auditing, but a retry recomputes the whole window, which is safe because the load is idempotent.
+- No Prefect blocks in v1. The database URL comes from `services/api/.env` and programmes are derived from the data.
+- Functions are in `pipeline.py` and `pipeline_db.py` instead of a `weekly_office_performance/` package, because the brief requires `data/pipelines/pipeline.py` as the entry point.
+- The manual trigger starts the flow in a background thread and returns 202 with the `run_id`.
+- `pydantic` is no longer pinned to 2.9.2 in `services/api/pyproject.toml`; Prefect 3 requires `pydantic>=2.10`.
+- Open packaging point: `data/` is outside `services/api`, so the Docker image does not contain it. The reporting endpoints import the pipeline lazily and return 503 if it is missing; shipping it in the image needs a wider build context.

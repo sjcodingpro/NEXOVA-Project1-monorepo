@@ -1,0 +1,7 @@
+office,programme_id,week_start,total_material_cost,kits_delivered_count,shortage_events_count,cost_variance_events_count,currency
+miami,support-onboarding,2026-09-28,0.0,0,0,0,USD
+miami,support-onboarding,2026-10-05,0.0,0,0,0,USD
+miami,support-onboarding,2026-10-12,0.0,0,0,0,USD
+valencia,support-onboarding,2026-09-28,0.0,0,0,0,EUR
+valencia,support-onboarding,2026-10-05,70.0,1,0,0,EUR
+valencia,support-onboarding,2026-10-12,0.0,0,0,0,EUR
