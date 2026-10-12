@@ -7,7 +7,7 @@ dependencies = [
     "uvicorn[standard]==0.30.6",
     "python-multipart==0.0.9",
     "tinydb==4.8.0",
-    "pydantic[email]==2.9.2",
+    "pydantic[email]>=2.10,<3",
     "python-jose[cryptography]>=3.5.0",
     "libpass[bcrypt]>=1.9.3",
     "resend>=2.44.0",
@@ -15,6 +15,7 @@ dependencies = [
     "sqlmodel>=0.0.33",
     "psycopg2-binary>=2.9.13",
     "pandas>=3.0.6",
+    "prefect>=3",
 ]
 
 [project.scripts]
