@@ -1,0 +1,5 @@
+# Nightly telemetry export (DEV-53). Fires daily at 02:00 UTC as its own OS process,
+# fully independent from the FastAPI server. Install on the server with:
+#   crontab scripts/nightly_export.crontab
+# (Server clock should be UTC; the script itself always computes "yesterday" in UTC.)
+0 2 * * * cd /path/to/NEXOVA-Project1-monorepo && /usr/local/bin/uv run --project services/api python scripts/nightly_export.py >> /var/log/nightly_export.log 2>&1
