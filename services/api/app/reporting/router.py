@@ -13,7 +13,11 @@ from app.auth.security import get_current_user
 
 router = APIRouter(prefix="/reporting", tags=["reporting"])
 
-_PIPELINES_DIR = Path(__file__).resolve().parents[4] / "data" / "pipelines"
+# Inside a Docker image built from services/api only, this file has fewer than 5 parent
+# folders (parents[4] would raise IndexError at import and stop the whole API from starting).
+# Fall back to a path that does not exist: _pipeline() then answers 503 instead.
+_PARENTS = Path(__file__).resolve().parents
+_PIPELINES_DIR = (_PARENTS[4] if len(_PARENTS) > 4 else Path("/nonexistent")) / "data" / "pipelines"
 
 
 def _pipeline():
