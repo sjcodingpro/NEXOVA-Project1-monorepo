@@ -1,15 +1,17 @@
 import logging
+import os
 import time
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from fastapi import APIRouter, Body, HTTPException, status
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.telemetry.analysis import build_report
 from app.telemetry.models import TelemetryEvent
 from app.telemetry.repository import bulk_insert_telemetry
+from app.telemetry.tasks import build_report_task
 
 # "uvicorn.error" so these lines show in the dev server console.
 logger = logging.getLogger("uvicorn.error")
@@ -144,3 +146,44 @@ def get_report(start_date: datetime | None = None, end_date: datetime | None = N
     _REPORT_CACHE[cache_key] = (time.monotonic(), report)
     logger.info("telemetry report: computed (cache miss)")
     return report
+
+
+class ReportTaskRequest(BaseModel):
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    # Demo only: forces the task to fail so the retries and the DLQ can be shown in Flower.
+    # Ignored unless ALLOW_TASK_FAILURE_DEMO=1 is set on the API.
+    simulate_failure: bool = False
+
+
+@router.post("/report", status_code=status.HTTP_202_ACCEPTED)
+def enqueue_report(body: ReportTaskRequest | None = Body(default=None)):
+    """Async version of GET /telemetry/report (DEV-55).
+
+    Returns 202 and a task_id right away; a Celery worker builds the report.
+    Poll GET /tasks/{task_id} for the status and the result.
+    """
+    body = body or ReportTaskRequest()
+    end = _as_utc(body.end_date) if body.end_date else datetime.now(timezone.utc)
+    start = _as_utc(body.start_date) if body.start_date else end - timedelta(days=7)
+    if start >= end:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="start_date must be before end_date.",
+        )
+    if body.simulate_failure and os.environ.get("ALLOW_TASK_FAILURE_DEMO") != "1":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Failure simulation is disabled. Set ALLOW_TASK_FAILURE_DEMO=1 to use it.",
+        )
+
+    try:
+        task = build_report_task.delay(start.isoformat(), end.isoformat(), body.simulate_failure)
+    except Exception:
+        logger.exception("telemetry report: could not enqueue task")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Task broker unavailable.",
+        )
+    logger.info("telemetry report: enqueued task_id=%s", task.id)
+    return {"task_id": task.id, "status": "pending", "status_url": f"/tasks/{task.id}"}

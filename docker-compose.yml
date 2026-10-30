@@ -26,6 +26,10 @@ services:
       - backend_venv:/app/.venv
     env_file:
       - .env
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - redis
     networks:
       - nexova-network
 
@@ -44,5 +48,42 @@ services:
       - .env
     depends_on:
       - backend
+    networks:
+      - nexova-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --maxmemory-policy noeviction
+    networks:
+      - nexova-network
+
+  # Celery worker: its own process and container, NOT inside the FastAPI process.
+  worker:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    command: ["uv", "run", "celery", "-A", "app.celery_app", "worker", "-Q", "default,dlq", "--loglevel=info", "--concurrency=2"]
+    volumes:
+      - ./services/api:/app
+      - backend_venv:/app/.venv
+    env_file:
+      - .env
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+    networks:
+      - nexova-network
+
+  flower:
+    image: mher/flower:2.0
+    ports:
+      - "5555:5555"
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - redis
     networks:
       - nexova-network
