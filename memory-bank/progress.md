@@ -58,6 +58,22 @@
 - [ ] Open PR from `feature/agent-memory-bank` → `main` with required
       screenshots + AGENTS.md link
 
+## Sales forecast model (`feature/sales-forecast-model`, 2026-11-06)
+
+- [x] `data/raw/nexova_sales.csv` added as provided (120 consolidated rows, 2016-01..2025-12)
+- [x] Root `pyproject.toml` + `uv.lock` created with `uv init --bare` / `uv add` for the ML
+      tooling (pandas, numpy, scikit-learn, xgboost, matplotlib, pytest dev). Independent of
+      `services/api`'s own uv project. Use uv only — no pip/pipenv.
+- [x] `scripts/train_sales_forecast.py` — Random Forest, 8y train / 2y test, recursive 24-month
+      forecast with P5-P95 tree band; outputs in `data/eval/sales_forecast/`
+- [x] `tests/pipelines/test_sales_forecast.py` — 8/2 split + leakage tests
+- [x] `scripts/SALES_FORECAST.md` — model choice, metrics and their meaning
+- [ ] PR → `main`, pending tech-lead review
+- Decision: same-month `active_contracts` / `avg_contract_value_usd` are excluded as features —
+  their product reproduces `revenue_usd` (target leakage).
+- Confirmed with developer: "K2 Score" in the ticket is a typo for R² (coefficient of determination).
+- Decision: PSI uses >=5 obs/bin (4 bins on 24 test months); 10 bins is noise-dominated there.
+
 ## Known open items / decisions made along the way
 
 - Decided **not** to fold `talent-pipeline-tracker` into `backoffice` —
