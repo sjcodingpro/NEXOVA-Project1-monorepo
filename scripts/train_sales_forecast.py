@@ -70,6 +70,10 @@ TARGET = "revenue_usd"
 TRAIN_YEARS, TEST_YEARS = 8, 2
 WARMUP_MONTHS = 24  # trailing-12 mean + its value 12 months earlier (YoY growth feature)
 BAND_QUANTILES = (5, 95)
+# Corrective action from data/eval/evaluation_report.md: with only 12 feature months the
+# validation MAE doubles ($64.6k vs ~$26k) and fold-to-fold spread explodes. Never fit the
+# production model on fewer than 24 feature months (= 48 calendar months incl. warm-up).
+MIN_TRAIN_FEATURE_MONTHS = 24
 
 # Seasonality documented in CONTEXT/briefing, as ratio to the annual average. Used to
 # validate that the data and the engineered features reflect the expected pattern.
@@ -232,6 +236,11 @@ def build_feature_frame(df: pd.DataFrame) -> pd.DataFrame:
 
 # ------------------------------------------------------------------------------- model
 def train_model(train_features: pd.DataFrame) -> RandomForestRegressor:
+    if len(train_features) < MIN_TRAIN_FEATURE_MONTHS:
+        raise ValueError(
+            f"Training window too short: {len(train_features)} feature months, need >= "
+            f"{MIN_TRAIN_FEATURE_MONTHS} (see data/eval/evaluation_report.md). Retrain on an "
+            "expanding window with all available history instead of a short rolling window.")
     model = RandomForestRegressor(
         n_estimators=300,
         min_samples_leaf=2,  # small smoothing for 72 rows; no tuning on the test years

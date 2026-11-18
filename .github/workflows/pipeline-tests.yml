@@ -1,0 +1,21 @@
+name: Pipeline tests
+
+# Runs the data/ML unit tests (sales-forecast split, time-aware CV fold order and leakage
+# guards, weekly KPI pipeline) on every pull request and on pushes to main.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+      - name: Install dependencies from uv.lock
+        run: uv sync --frozen
+      - name: Run tests/pipelines
+        run: uv run pytest tests/pipelines -v

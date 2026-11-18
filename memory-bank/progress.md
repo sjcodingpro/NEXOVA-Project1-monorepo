@@ -101,3 +101,18 @@
   hiring-process SLA, objection handling) — not started, not part of
   this repo's current state, noted here in case a future agent session
   needs the context that it's coming.
+
+## Sales forecast evaluation (`feature/regression-model-eval`, 2026-11-18)
+
+- [x] `scripts/evaluate_sales_forecast.py` — 5-fold `TimeSeriesSplit` (one calendar year per fold) on
+      2016-2023 only, features rebuilt per fold from the truncated series, learning curve with OOB error,
+      MAE/RMSE train + validation, `min_samples_leaf` sweep. Outputs in `data/eval/`.
+- [x] `tests/pipelines/test_model_evaluation.py` — fold chronological order, no leakage, min-window guard
+- [x] `.github/workflows/pipeline-tests.yml` — CI runs `tests/pipelines` with uv on every PR
+- [x] Diagnosis: reasonably well fitted (val MAE $26.1k ± $1.5k on folds with >= 24 training months; OOB
+      converges onto validation). Unstable below 24 feature months (fold 1: $64.6k).
+- [x] Corrective action: `MIN_TRAIN_FEATURE_MONTHS = 24` guard in `train_model`; expanding-window retraining.
+- Decision: no extra regularisation (raises validation error) and no "growth-to-date" feature (tested, no gain).
+- [x] Primary metric: RMSE (briefing states no over/under asymmetry; it stresses telling a normal August from
+      an anomalous drop, so large single-month misses are the costly error). MAE reported alongside.
+- Branch is stacked on `feature/sales-forecast-model` because PR #24 was not merged yet.
