@@ -1,0 +1,108 @@
+[
+  {
+    "id": "sl-1",
+    "question": "What does your executive headhunting service include?",
+    "expected_source_document": "service-lines",
+    "expected_section": "Service Lines › Executive and mid-management headhunting"
+  },
+  {
+    "id": "sl-2",
+    "question": "What's the minimum team size if we outsource our customer support to you?",
+    "expected_source_document": "service-lines",
+    "expected_section": "Service Lines › Customer support team outsourcing"
+  },
+  {
+    "id": "sl-3",
+    "question": "Can we hire only your training service without the recruiting one?",
+    "expected_source_document": "service-lines",
+    "expected_section": "Service Lines",
+    "expected_chunk_index": 0
+  },
+  {
+    "id": "pm-1",
+    "question": "How much does an 8-week training program cost?",
+    "expected_source_document": "pricing-model",
+    "expected_section": "Pricing Model › Corporate training"
+  },
+  {
+    "id": "pm-2",
+    "question": "How is the headhunting fee billed and when do we pay each installment?",
+    "expected_source_document": "pricing-model",
+    "expected_section": "Pricing Model › Executive headhunting"
+  },
+  {
+    "id": "pm-3",
+    "question": "What do you charge per support agent per month, and is there a minimum contract?",
+    "expected_source_document": "pricing-model",
+    "expected_section": "Pricing Model › Customer support outsourcing"
+  },
+  {
+    "id": "pm-4",
+    "question": "We need to train 25 people. What's the price for a group that size?",
+    "expected_source_document": "pricing-model",
+    "expected_section": "Pricing Model › Corporate training"
+  },
+  {
+    "id": "sla-1",
+    "question": "How long does a typical headhunting process take for a VP role?",
+    "expected_source_document": "hiring-process-sla",
+    "expected_section": "Hiring Process SLA › Committed delivery times by search type"
+  },
+  {
+    "id": "sla-2",
+    "question": "Are those delivery times guaranteed in the contract?",
+    "expected_source_document": "hiring-process-sla",
+    "expected_section": "Hiring Process SLA",
+    "expected_chunk_index": 0
+  },
+  {
+    "id": "sla-3",
+    "question": "We need someone who lives in one specific small city. Can you guarantee the timeline?",
+    "expected_source_document": "hiring-process-sla",
+    "expected_section": "Hiring Process SLA",
+    "expected_chunk_index": 2
+  },
+  {
+    "id": "obj-1",
+    "objection": true,
+    "question": "22% seems expensive compared to other firms. Can you do 15%?",
+    "expected_source_document": "objection-handling",
+    "expected_section": "Handling Common Prospect Objections › 22% seems expensive compared to other firms."
+  },
+  {
+    "id": "obj-2",
+    "objection": true,
+    "question": "What happens if the shortlist doesn't work for me?",
+    "expected_source_document": "objection-handling",
+    "expected_section": "Handling Common Prospect Objections › What happens if I'm not satisfied with the shortlist presented?"
+  },
+  {
+    "id": "obj-3",
+    "objection": true,
+    "question": "Can I pay everything at the end, once the candidate starts working?",
+    "expected_source_document": "objection-handling",
+    "expected_section": "Handling Common Prospect Objections › Can I pay everything at the end, once the candidate starts working?"
+  },
+  {
+    "id": "obj-4",
+    "objection": true,
+    "question": "Do you also recruit for our direct competitors?",
+    "expected_source_document": "objection-handling",
+    "expected_section": "Handling Common Prospect Objections › Do you work with companies in my same sector that are direct competitors?"
+  },
+  {
+    "id": "off-1",
+    "question": "What's the weather like in Valencia this weekend?",
+    "expected_source_document": null
+  },
+  {
+    "id": "off-2",
+    "question": "Can you recommend a good Python library for plotting charts?",
+    "expected_source_document": null
+  },
+  {
+    "id": "off-3",
+    "question": "Do you offer payroll processing and tax filing services?",
+    "expected_source_document": null
+  }
+]
