@@ -116,3 +116,22 @@
 - [x] Primary metric: RMSE (briefing states no over/under asymmetry; it stresses telling a normal August from
       an anomalous drop, so large single-month misses are the costly error). MAE reported alongside.
 - Branch is stacked on `feature/sales-forecast-model` because PR #24 was not merged yet.
+
+## Sales knowledge base / RAG (`feature/rag-knowledge-base`, 2026-11-23)
+
+- [x] Source docs copied from `00-general-contexts/nexova/` into `docs/company-knowledge-base/` (4 files)
+- [x] `data/process/rag.py`: `setup()` + `embed()`; Qdrant collection `nexova_knowledge`, 15 chunks
+      (service-lines 4, pricing-model 3, hiring-process-sla 4, objection-handling 4), deterministic uuid5 ids
+- [x] `data/pipelines/rag.py`: `retrieve()` (min_score 0.30), `generate_answer()`, `query()`; salesperson
+      system prompt with the BRIEFING rules (no discount below 22%, averages not guarantees, competitor transparency)
+- [x] `POST /knowledge/query` (`services/api/app/knowledge/router.py`): returns `{answer}` only
+- [x] Backoffice `/knowledge` "Sales Assistant" page with loading and error states
+- [x] `tests/pipelines/test_rag.py` (16 tests, Qdrant + LLM mocked); Recall@3 = 13/14 = 93% (`data/eval/`)
+- [x] `docs/rag/rag-design.md`: process, chunking strategy, embedding practices, min_score tuning
+- Decision: models come from the 4Geeks LLM gateway (`https://llm.4geeks.ai/v1`): embeddings
+  `pplx-embed-v1-0.6b` (1024-d), generation `deepseek-v4-flash`. Use model ids WITHOUT the `litellm/`
+  prefix the dashboard shows (`GET /v1/models` lists the real ones); `glm-5.3-flash` is listed but rejected.
+  Student LLM keys expire (the first one expired after ~1 month): regenerate on the 4Geeks profile page.
+- Decision: chunk by blank-line semantic units (the docs have no `##` headings), never mid-unit.
+- Gotcha: `fastembed`/`onnxruntime` has no wheels for Intel macOS; don't add local embedding models here.
+- Known weakness: "can we hire only one service line?" misses the short "contracted independently" chunk.

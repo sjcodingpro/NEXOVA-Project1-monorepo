@@ -1,0 +1,447 @@
+{
+  "run_at": "2026-11-23T17:58:56+00:00",
+  "collection": "nexova_knowledge",
+  "embedding_model": "downtown-miami/openrouter/perplexity/pplx-embed-v1-0.6b",
+  "k": 3,
+  "recall_at_3": 0.9286,
+  "hits": 13,
+  "questions": 14,
+  "min_score": 0.45,
+  "correct_chunk_score_range": [
+    0.3713,
+    0.6662
+  ],
+  "off_topic_best_score_max": 0.1821,
+  "results": [
+    {
+      "id": "sl-1",
+      "question": "What does your executive headhunting service include?",
+      "top3": [
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Executive headhunting",
+          "score": 0.5973
+        },
+        {
+          "source_document": "service-lines",
+          "section": "Service Lines \u203a Executive and mid-management headhunting",
+          "score": 0.566
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.3478
+        }
+      ],
+      "best_score": 0.5973,
+      "expected": "service-lines / Service Lines \u203a Executive and mid-management headhunting",
+      "hit": true,
+      "rank": 2,
+      "correct_score": 0.566
+    },
+    {
+      "id": "sl-2",
+      "question": "What's the minimum team size if we outsource our customer support to you?",
+      "top3": [
+        {
+          "source_document": "service-lines",
+          "section": "Service Lines \u203a Customer support team outsourcing",
+          "score": 0.5837
+        },
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Customer support outsourcing",
+          "score": 0.4463
+        },
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Corporate training",
+          "score": 0.2388
+        }
+      ],
+      "best_score": 0.5837,
+      "expected": "service-lines / Service Lines \u203a Customer support team outsourcing",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.5837
+    },
+    {
+      "id": "sl-3",
+      "question": "Can we hire only your training service without the recruiting one?",
+      "top3": [
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.3591
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.3159
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.315
+        }
+      ],
+      "best_score": 0.3591,
+      "expected": "service-lines / Service Lines",
+      "hit": false,
+      "rank": null,
+      "correct_score": null
+    },
+    {
+      "id": "pm-1",
+      "question": "How much does an 8-week training program cost?",
+      "top3": [
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Corporate training",
+          "score": 0.6662
+        },
+        {
+          "source_document": "service-lines",
+          "section": "Service Lines \u203a Corporate training in soft skills and leadership",
+          "score": 0.3206
+        },
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Customer support outsourcing",
+          "score": 0.2784
+        }
+      ],
+      "best_score": 0.6662,
+      "expected": "pricing-model / Pricing Model \u203a Corporate training",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.6662
+    },
+    {
+      "id": "pm-2",
+      "question": "How is the headhunting fee billed and when do we pay each installment?",
+      "top3": [
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Executive headhunting",
+          "score": 0.5111
+        },
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a Can I pay everything at the end, once the candidate starts working?",
+          "score": 0.4147
+        },
+        {
+          "source_document": "service-lines",
+          "section": "Service Lines \u203a Executive and mid-management headhunting",
+          "score": 0.2846
+        }
+      ],
+      "best_score": 0.5111,
+      "expected": "pricing-model / Pricing Model \u203a Executive headhunting",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.5111
+    },
+    {
+      "id": "pm-3",
+      "question": "What do you charge per support agent per month, and is there a minimum contract?",
+      "top3": [
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Customer support outsourcing",
+          "score": 0.6333
+        },
+        {
+          "source_document": "service-lines",
+          "section": "Service Lines \u203a Customer support team outsourcing",
+          "score": 0.3568
+        },
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Corporate training",
+          "score": 0.2782
+        }
+      ],
+      "best_score": 0.6333,
+      "expected": "pricing-model / Pricing Model \u203a Customer support outsourcing",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.6333
+    },
+    {
+      "id": "pm-4",
+      "question": "We need to train 25 people. What's the price for a group that size?",
+      "top3": [
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Corporate training",
+          "score": 0.6433
+        },
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Customer support outsourcing",
+          "score": 0.2758
+        },
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Executive headhunting",
+          "score": 0.2454
+        }
+      ],
+      "best_score": 0.6433,
+      "expected": "pricing-model / Pricing Model \u203a Corporate training",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.6433
+    },
+    {
+      "id": "sla-1",
+      "question": "How long does a typical headhunting process take for a VP role?",
+      "top3": [
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA \u203a Committed delivery times by search type",
+          "score": 0.5908
+        },
+        {
+          "source_document": "service-lines",
+          "section": "Service Lines \u203a Executive and mid-management headhunting",
+          "score": 0.5144
+        },
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Executive headhunting",
+          "score": 0.4941
+        }
+      ],
+      "best_score": 0.5908,
+      "expected": "hiring-process-sla / Hiring Process SLA \u203a Committed delivery times by search type",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.5908
+    },
+    {
+      "id": "sla-2",
+      "question": "Are those delivery times guaranteed in the contract?",
+      "top3": [
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.392
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA \u203a Committed delivery times by search type",
+          "score": 0.343
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.3307
+        }
+      ],
+      "best_score": 0.392,
+      "expected": "hiring-process-sla / Hiring Process SLA",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.392
+    },
+    {
+      "id": "sla-3",
+      "question": "We need someone who lives in one specific small city. Can you guarantee the timeline?",
+      "top3": [
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.3713
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA \u203a Committed delivery times by search type",
+          "score": 0.2773
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.2366
+        }
+      ],
+      "best_score": 0.3713,
+      "expected": "hiring-process-sla / Hiring Process SLA",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.3713
+    },
+    {
+      "id": "obj-1",
+      "question": "22% seems expensive compared to other firms. Can you do 15%?",
+      "top3": [
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a 22% seems expensive compared to other firms.",
+          "score": 0.4759
+        },
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Executive headhunting",
+          "score": 0.2726
+        },
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Corporate training",
+          "score": 0.2291
+        }
+      ],
+      "best_score": 0.4759,
+      "expected": "objection-handling / Handling Common Prospect Objections \u203a 22% seems expensive compared to other firms.",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.4759
+    },
+    {
+      "id": "obj-2",
+      "question": "What happens if the shortlist doesn't work for me?",
+      "top3": [
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a What happens if I'm not satisfied with the shortlist presented?",
+          "score": 0.6471
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.3105
+        },
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a Do you work with companies in my same sector that are direct competitors?",
+          "score": 0.2802
+        }
+      ],
+      "best_score": 0.6471,
+      "expected": "objection-handling / Handling Common Prospect Objections \u203a What happens if I'm not satisfied with the shortlist presented?",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.6471
+    },
+    {
+      "id": "obj-3",
+      "question": "Can I pay everything at the end, once the candidate starts working?",
+      "top3": [
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a Can I pay everything at the end, once the candidate starts working?",
+          "score": 0.6079
+        },
+        {
+          "source_document": "pricing-model",
+          "section": "Pricing Model \u203a Executive headhunting",
+          "score": 0.2713
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.2599
+        }
+      ],
+      "best_score": 0.6079,
+      "expected": "objection-handling / Handling Common Prospect Objections \u203a Can I pay everything at the end, once the candidate starts working?",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.6079
+    },
+    {
+      "id": "obj-4",
+      "question": "Do you also recruit for our direct competitors?",
+      "top3": [
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a Do you work with companies in my same sector that are direct competitors?",
+          "score": 0.4982
+        },
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a What happens if I'm not satisfied with the shortlist presented?",
+          "score": 0.2775
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.2648
+        }
+      ],
+      "best_score": 0.4982,
+      "expected": "objection-handling / Handling Common Prospect Objections \u203a Do you work with companies in my same sector that are direct competitors?",
+      "hit": true,
+      "rank": 1,
+      "correct_score": 0.4982
+    },
+    {
+      "id": "off-1",
+      "question": "What's the weather like in Valencia this weekend?",
+      "top3": [
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a 22% seems expensive compared to other firms.",
+          "score": 0.0527
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.0397
+        },
+        {
+          "source_document": "hiring-process-sla",
+          "section": "Hiring Process SLA",
+          "score": 0.0325
+        }
+      ],
+      "best_score": 0.0527
+    },
+    {
+      "id": "off-2",
+      "question": "Can you recommend a good Python library for plotting charts?",
+      "top3": [
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a 22% seems expensive compared to other firms.",
+          "score": 0.0365
+        },
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a What happens if I'm not satisfied with the shortlist presented?",
+          "score": 0.0198
+        },
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a Do you work with companies in my same sector that are direct competitors?",
+          "score": 0.0184
+        }
+      ],
+      "best_score": 0.0365
+    },
+    {
+      "id": "off-3",
+      "question": "Do you offer payroll processing and tax filing services?",
+      "top3": [
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a Do you work with companies in my same sector that are direct competitors?",
+          "score": 0.1821
+        },
+        {
+          "source_document": "objection-handling",
+          "section": "Handling Common Prospect Objections \u203a Can I pay everything at the end, once the candidate starts working?",
+          "score": 0.1713
+        },
+        {
+          "source_document": "service-lines",
+          "section": "Service Lines \u203a Customer support team outsourcing",
+          "score": 0.1705
+        }
+      ],
+      "best_score": 0.1821
+    }
+  ]
+}

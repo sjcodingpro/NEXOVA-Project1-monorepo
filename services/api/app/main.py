@@ -24,6 +24,7 @@ from app.inventory.router import router as inventory_router
 from app.telemetry.router import router as telemetry_router
 from app.reporting.router import router as reporting_router
 from app.tasks.router import router as tasks_router
+from app.knowledge.router import router as knowledge_router
 
 logger = logging.getLogger("nexova_api")
 
@@ -55,6 +56,7 @@ app.include_router(inventory_router)
 app.include_router(telemetry_router)
 app.include_router(reporting_router)
 app.include_router(tasks_router)
+app.include_router(knowledge_router)
 
 
 @app.on_event("startup")

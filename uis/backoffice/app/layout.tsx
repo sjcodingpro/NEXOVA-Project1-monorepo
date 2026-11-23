@@ -45,6 +45,9 @@ export default function RootLayout({
                 <Link href="/reporting" className="text-slate-300 hover:text-white">
                   Reporting
                 </Link>
+                <Link href="/knowledge" className="text-slate-300 hover:text-white">
+                  Sales Assistant
+                </Link>
                 <NavAuthLinks />
               </nav>
             </div>

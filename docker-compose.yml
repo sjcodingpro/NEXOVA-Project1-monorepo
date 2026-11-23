@@ -13,6 +13,8 @@ volumes:
   website_node_modules:
   backoffice_node_modules:
   backend_venv:
+  # Qdrant vectors survive container restarts (sales knowledge base, Milestone 7).
+  qdrant_data:
 
 services:
   backend:
@@ -24,12 +26,17 @@ services:
     volumes:
       - ./services/api:/app
       - backend_venv:/app/.venv
+      # The RAG pipeline lives in data/ at the repo root (POST /knowledge/query imports it).
+      - ./data:/repo/data:ro
     env_file:
       - .env
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      RAG_REPO_ROOT: /repo
     depends_on:
       - redis
+      - qdrant
     networks:
       - nexova-network
 
@@ -85,5 +92,16 @@ services:
       CELERY_BROKER_URL: redis://redis:6379/0
     depends_on:
       - redis
+    networks:
+      - nexova-network
+
+  # Vector database for the sales knowledge base (collection: nexova_knowledge).
+  # Index it with: uv run python -m data.process.rag   (from the repo root)
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
     networks:
       - nexova-network
