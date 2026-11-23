@@ -64,7 +64,13 @@ def on_startup_init_inventory_schema() -> None:
     # Creates the Asset/AssetEntry/AssetExit tables in Supabase if they
     # don't exist yet. Safe to call on every startup -- create_all only
     # creates what's missing, it doesn't touch existing tables.
-    init_inventory_db()
+    # If Supabase is unreachable (e.g. a paused free-tier project), log it
+    # and keep starting: the inventory routes will fail on their own, but
+    # every other router (knowledge, reporting, auth on TinyDB...) still works.
+    try:
+        init_inventory_db()
+    except Exception:
+        logger.exception("Inventory DB (Supabase) unreachable at startup; inventory routes will fail until it's back")
 
 
 @app.exception_handler(Exception)
