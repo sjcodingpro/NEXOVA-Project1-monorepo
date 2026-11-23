@@ -28,12 +28,16 @@ services:
       - backend_venv:/app/.venv
       # The RAG pipeline lives in data/ at the repo root (POST /knowledge/query imports it).
       - ./data:/repo/data:ro
+      # LangGraph agent (POST /agent/query) and its run traces.
+      - ./services/agent:/repo/services/agent:ro
     env_file:
       - .env
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
       QDRANT_URL: http://qdrant:6333
       RAG_REPO_ROOT: /repo
+      # data/ is mounted read-only; agent traces go to a writable folder instead.
+      AGENT_TRACE_PATH: /app/.agent_traces/runs.jsonl
     depends_on:
       - redis
       - qdrant

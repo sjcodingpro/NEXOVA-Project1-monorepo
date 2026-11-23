@@ -1,0 +1,114 @@
+{
+  "trace_id": "run-e8253dcb9d8f",
+  "graph_version": "agent-base-v1",
+  "started_at": "2026-11-23T21:50:35+00:00",
+  "question": "22% seems expensive. Can you do 15%?",
+  "node_order": [
+    "receive_question",
+    "retrieve",
+    "generate"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "node": "receive_question",
+      "summary": "accepted (36 characters)",
+      "output": {
+        "question": "22% seems expensive. Can you do 15%?"
+      },
+      "duration_ms": 0.1
+    },
+    {
+      "order": 2,
+      "node": "retrieve",
+      "summary": "1 chunk(s) above min_score 0.3",
+      "output": {
+        "chunks": [
+          {
+            "source_document": "objection-handling",
+            "section": "Handling Common Prospect Objections › 22% seems expensive compared to other firms.",
+            "chunk_index": 0,
+            "text": "\"22% seems expensive compared to other firms.\"\nSuggested response: explain that the fee includes the 6-month replacement\nguarantee and the reference verification process, which reduces the risk of\na bad hire. A discount below 22% must never be offered without Marcos\nIbáñez's approval."
+          }
+        ]
+      },
+      "duration_ms": 673.8
+    },
+    {
+      "order": 3,
+      "node": "generate",
+      "summary": "answered from 1 chunk(s)",
+      "output": {
+        "answer": "I understand the concern about the fee. The 22% includes our 6-month replacement guarantee and our reference verification process, which significantly reduces your risk of a bad hire. A discount below 22% isn't a standard condition, so I'd need to get approval from our sales leadership, Marcos Ibáñez, to discuss that. Would you like me to escalate it?\n\nSource: objection-handling / Handling Common Prospect Objections"
+      },
+      "duration_ms": 3212.7
+    }
+  ],
+  "answer": "I understand the concern about the fee. The 22% includes our 6-month replacement guarantee and our reference verification process, which significantly reduces your risk of a bad hire. A discount below 22% isn't a standard condition, so I'd need to get approval from our sales leadership, Marcos Ibáñez, to discuss that. Would you like me to escalate it?\n\nSource: objection-handling / Handling Common Prospect Objections",
+  "error": null,
+  "checkpoints": [
+    {
+      "step": -1,
+      "after_node": null,
+      "next": [
+        "__start__"
+      ],
+      "state_keys": [
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-9a5d-670e-bfff-60d29ce145ac"
+    },
+    {
+      "step": 0,
+      "after_node": null,
+      "next": [
+        "receive_question"
+      ],
+      "state_keys": [
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-9a5f-65a4-8000-6a0e37966b21"
+    },
+    {
+      "step": 1,
+      "after_node": "receive_question",
+      "next": [
+        "retrieve"
+      ],
+      "state_keys": [
+        "error",
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-9a63-671c-8001-640d7f284fa4"
+    },
+    {
+      "step": 2,
+      "after_node": "retrieve",
+      "next": [
+        "generate"
+      ],
+      "state_keys": [
+        "context",
+        "error",
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-a0d3-68fe-8002-383bfe3151de"
+    },
+    {
+      "step": 3,
+      "after_node": "generate",
+      "next": [],
+      "state_keys": [
+        "answer",
+        "context",
+        "error",
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-bf7a-64a6-8003-8a9e041626bc"
+    }
+  ]
+}

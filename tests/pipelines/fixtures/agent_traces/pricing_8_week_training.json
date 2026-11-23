@@ -1,0 +1,120 @@
+{
+  "trace_id": "run-3cc90925149e",
+  "graph_version": "agent-base-v1",
+  "started_at": "2026-11-23T21:50:27+00:00",
+  "question": "How much does an 8-week training program cost?",
+  "node_order": [
+    "receive_question",
+    "retrieve",
+    "generate"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "node": "receive_question",
+      "summary": "accepted (46 characters)",
+      "output": {
+        "question": "How much does an 8-week training program cost?"
+      },
+      "duration_ms": 0.1
+    },
+    {
+      "order": 2,
+      "node": "retrieve",
+      "summary": "2 chunk(s) above min_score 0.3",
+      "output": {
+        "chunks": [
+          {
+            "source_document": "pricing-model",
+            "section": "Pricing Model › Corporate training",
+            "chunk_index": 0,
+            "text": "Corporate training:\n- 4-week program: starting at 3,500 USD for groups of up to 15 people.\n- 8-week program: starting at 6,200 USD for groups of up to 15 people.\n- 12-week program: starting at 8,900 USD for groups of up to 15 people.\n- Groups larger than 15 people require a custom quote; there is no\n  published fixed rate for large groups."
+          },
+          {
+            "source_document": "service-lines",
+            "section": "Service Lines › Corporate training in soft skills and leadership",
+            "chunk_index": 0,
+            "text": "3. Corporate training in soft skills and leadership: 4, 8, or 12-week\n   programs, delivered in-person, virtually, or hybrid. Includes an initial\n   diagnostic, live sessions, and a completion certificate."
+          }
+        ]
+      },
+      "duration_ms": 4381.5
+    },
+    {
+      "order": 3,
+      "node": "generate",
+      "summary": "answered from 2 chunk(s)",
+      "output": {
+        "answer": "Great question. Our 8-week corporate training program in soft skills and leadership starts at **6,200 USD** for groups of up to 15 people. That includes an initial diagnostic, live sessions (in-person, virtual, or hybrid), and a completion certificate.\n\nIf your prospect’s group is larger than 15, we’d need to put together a custom quote.\n\nWant me to help you prepare the next talking point for the call?\n\nSource: pricing-model / Corporate training"
+      },
+      "duration_ms": 3288.4
+    }
+  ],
+  "answer": "Great question. Our 8-week corporate training program in soft skills and leadership starts at **6,200 USD** for groups of up to 15 people. That includes an initial diagnostic, live sessions (in-person, virtual, or hybrid), and a completion certificate.\n\nIf your prospect’s group is larger than 15, we’d need to put together a custom quote.\n\nWant me to help you prepare the next talking point for the call?\n\nSource: pricing-model / Corporate training",
+  "error": null,
+  "checkpoints": [
+    {
+      "step": -1,
+      "after_node": null,
+      "next": [
+        "__start__"
+      ],
+      "state_keys": [
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-5118-6120-bfff-7c6c9c51f3e4"
+    },
+    {
+      "step": 0,
+      "after_node": null,
+      "next": [
+        "receive_question"
+      ],
+      "state_keys": [
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-511c-687e-8000-aaafd7df0582"
+    },
+    {
+      "step": 1,
+      "after_node": "receive_question",
+      "next": [
+        "retrieve"
+      ],
+      "state_keys": [
+        "error",
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-5125-6636-8001-2e1d629fa1ce"
+    },
+    {
+      "step": 2,
+      "after_node": "retrieve",
+      "next": [
+        "generate"
+      ],
+      "state_keys": [
+        "context",
+        "error",
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-7af2-6d1a-8002-c3508e306829"
+    },
+    {
+      "step": 3,
+      "after_node": "generate",
+      "next": [],
+      "state_keys": [
+        "answer",
+        "context",
+        "error",
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-9a53-66fa-8003-74dd9d5dff8c"
+    }
+  ]
+}
