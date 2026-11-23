@@ -135,3 +135,19 @@
 - Decision: chunk by blank-line semantic units (the docs have no `##` headings), never mid-unit.
 - Gotcha: `fastembed`/`onnxruntime` has no wheels for Intel macOS; don't add local embedding models here.
 - Known weakness: "can we hire only one service line?" misses the short "contracted independently" chunk.
+
+## Support agent Part 1 — LangGraph (`feature/langgraph-agent-base`, 2026-11-23)
+
+- [x] `services/agent/`: `state.py` (question, context, answer, error, trace_steps — no chat history),
+      `nodes.py` (receive_question, retrieve, generate, no_context), `graph.py` (conditional edges,
+      compiled at import with a MemorySaver checkpointer), `tracing.py` (JSONL trace store)
+- [x] Nodes reuse `data/pipelines/rag.py`: `retrieve()` in its node, `generate_answer()` in another;
+      the monolithic `query()` is never called (a test fails if it is)
+- [x] `POST /agent/query` → `{answer, trace_id}`; `GET /agent/traces[/{id}]` to query traces
+      (`services/api/app/agent/router.py`, imports the compiled graph so a broken graph stops startup)
+- [x] Evals on recorded traces (`tests/pipelines/test_agent_evals.py`, fixtures from
+      `uv run python -m services.agent.record_eval_traces`) + graph unit tests (`test_agent_graph.py`)
+- Decision: when nothing clears min_score the graph routes to `no_context`, a fixed honest answer with no
+  model call, so it can't invent Nexova facts.
+- Traces: `data/agent_traces/runs.jsonl` locally (gitignored); `AGENT_TRACE_PATH` in Docker, since data/
+  is mounted read-only there.

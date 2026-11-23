@@ -1,0 +1,58 @@
+{
+  "trace_id": "run-ce7e3ef51c20",
+  "graph_version": "agent-base-v1",
+  "started_at": "2026-11-23T21:50:39+00:00",
+  "question": "   ",
+  "node_order": [
+    "receive_question"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "node": "receive_question",
+      "summary": "rejected: the question is empty",
+      "output": {
+        "error": "empty_question"
+      },
+      "duration_ms": 0.0
+    }
+  ],
+  "answer": null,
+  "error": "empty_question",
+  "checkpoints": [
+    {
+      "step": -1,
+      "after_node": null,
+      "next": [
+        "__start__"
+      ],
+      "state_keys": [
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-c3cf-6a24-bfff-df6716f3f138"
+    },
+    {
+      "step": 0,
+      "after_node": null,
+      "next": [
+        "receive_question"
+      ],
+      "state_keys": [
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-c3d1-652c-8000-3596e14cddd3"
+    },
+    {
+      "step": 1,
+      "after_node": "receive_question",
+      "next": [],
+      "state_keys": [
+        "error",
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e787e-c3d3-6b24-8001-21f9208bdac2"
+    }
+  ]
+}

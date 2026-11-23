@@ -4,3 +4,6 @@ public/
 .venv/
 __pycache__/
 *.pyc
+# Agent run traces (local, queryable via GET /agent/traces)
+data/agent_traces/
+services/api/.agent_traces/
