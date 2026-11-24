@@ -1,0 +1,192 @@
+{
+  "trace_id": "run-dbd2e23743e5",
+  "graph_version": "agent-tools-v1",
+  "started_at": "2026-11-23T23:27:05+00:00",
+  "question": "What is the status of ticket 482?",
+  "route": "ticket_tool",
+  "route_rationale": "asks about ticket #482: live incident-manager data",
+  "sources_used": [
+    "ticket_tool"
+  ],
+  "tool_outcome": "not_found",
+  "node_order": [
+    "receive_question",
+    "route_intent",
+    "lookup_ticket",
+    "handle_tool_failure",
+    "synthesize_answer"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "node": "receive_question",
+      "summary": "accepted (33 characters)",
+      "output": {
+        "question": "What is the status of ticket 482?"
+      },
+      "duration_ms": 0.0
+    },
+    {
+      "order": 2,
+      "node": "route_intent",
+      "summary": "route=ticket_tool: asks about ticket #482: live incident-manager data",
+      "output": {
+        "route": "ticket_tool",
+        "rationale": "asks about ticket #482: live incident-manager data",
+        "ticket_query": {
+          "ticket_id": 482
+        },
+        "rag_question": null
+      },
+      "duration_ms": 0.0
+    },
+    {
+      "order": 3,
+      "node": "lookup_ticket",
+      "summary": "not_found: ticket 482 does not exist",
+      "output": {
+        "found": false,
+        "outcome": "not_found",
+        "query": {
+          "ticket_id": 482,
+          "status": null
+        },
+        "tickets": [],
+        "total_matching": null,
+        "error": "ticket 482 does not exist",
+        "duration_ms": 0.8
+      },
+      "duration_ms": 0.9
+    },
+    {
+      "order": 4,
+      "node": "handle_tool_failure",
+      "summary": "fallback for outcome=not_found",
+      "output": {
+        "answer_text": "I couldn't find ticket #482 in the incident manager. Please double-check the ticket number."
+      },
+      "duration_ms": 0.0
+    },
+    {
+      "order": 5,
+      "node": "synthesize_answer",
+      "summary": "merged tool fallback",
+      "output": {
+        "answer": "I couldn't find ticket #482 in the incident manager. Please double-check the ticket number."
+      },
+      "duration_ms": 0.0
+    }
+  ],
+  "answer": "I couldn't find ticket #482 in the incident manager. Please double-check the ticket number.",
+  "error": null,
+  "checkpoints": [
+    {
+      "step": -1,
+      "after_node": null,
+      "next": [
+        "__start__"
+      ],
+      "state_keys": [
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-4e5a-62a2-bfff-4624f3d76f0e"
+    },
+    {
+      "step": 0,
+      "after_node": null,
+      "next": [
+        "receive_question"
+      ],
+      "state_keys": [
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-4e5b-6daa-8000-b68e667d54e7"
+    },
+    {
+      "step": 1,
+      "after_node": "receive_question",
+      "next": [
+        "route_intent"
+      ],
+      "state_keys": [
+        "error",
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-4e5e-619a-8001-e5a18870fa23"
+    },
+    {
+      "step": 2,
+      "after_node": "route_intent",
+      "next": [
+        "lookup_ticket"
+      ],
+      "state_keys": [
+        "error",
+        "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-4e60-662a-8002-af84d5019d52"
+    },
+    {
+      "step": 3,
+      "after_node": "lookup_ticket",
+      "next": [
+        "handle_tool_failure"
+      ],
+      "state_keys": [
+        "error",
+        "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
+        "tool_result",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-4e64-6c20-8003-ff2ab4aabb93"
+    },
+    {
+      "step": 4,
+      "after_node": "handle_tool_failure",
+      "next": [
+        "synthesize_answer"
+      ],
+      "state_keys": [
+        "error",
+        "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
+        "tool_fallback",
+        "tool_result",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-4e68-69a6-8004-15a44fd76d01"
+    },
+    {
+      "step": 5,
+      "after_node": "synthesize_answer",
+      "next": [],
+      "state_keys": [
+        "answer",
+        "error",
+        "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
+        "tool_fallback",
+        "tool_result",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-4e6d-665e-8005-fa2c2cedc52e"
+    }
+  ]
+}

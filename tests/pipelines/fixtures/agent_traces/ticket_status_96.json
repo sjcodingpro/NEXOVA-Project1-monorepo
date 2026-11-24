@@ -1,0 +1,173 @@
+{
+  "trace_id": "run-a06bf949721c",
+  "graph_version": "agent-tools-v1",
+  "started_at": "2026-11-23T23:27:04+00:00",
+  "question": "What's the status of ticket 96?",
+  "route": "ticket_tool",
+  "route_rationale": "asks about ticket #96: live incident-manager data",
+  "sources_used": [
+    "ticket_tool"
+  ],
+  "tool_outcome": "success",
+  "node_order": [
+    "receive_question",
+    "route_intent",
+    "lookup_ticket",
+    "synthesize_answer"
+  ],
+  "steps": [
+    {
+      "order": 1,
+      "node": "receive_question",
+      "summary": "accepted (31 characters)",
+      "output": {
+        "question": "What's the status of ticket 96?"
+      },
+      "duration_ms": 0.0
+    },
+    {
+      "order": 2,
+      "node": "route_intent",
+      "summary": "route=ticket_tool: asks about ticket #96: live incident-manager data",
+      "output": {
+        "route": "ticket_tool",
+        "rationale": "asks about ticket #96: live incident-manager data",
+        "ticket_query": {
+          "ticket_id": 96
+        },
+        "rag_question": null
+      },
+      "duration_ms": 0.0
+    },
+    {
+      "order": 3,
+      "node": "lookup_ticket",
+      "summary": "success: 1 ticket(s)",
+      "output": {
+        "found": true,
+        "outcome": "success",
+        "query": {
+          "ticket_id": 96,
+          "status": null
+        },
+        "tickets": [
+          {
+            "ticket_id": 96,
+            "title": "Mobile app crashes on iOS 17 after update",
+            "status": "open",
+            "category": "technical_failure",
+            "origin": "customer",
+            "branch": "central",
+            "created_at": "2024-01-28T00:00:00+00:00",
+            "updated_at": "2024-01-28T00:00:00+00:00"
+          }
+        ],
+        "total_matching": null,
+        "error": null,
+        "duration_ms": 554.6
+      },
+      "duration_ms": 554.7
+    },
+    {
+      "order": 4,
+      "node": "synthesize_answer",
+      "summary": "merged ticket data",
+      "output": {
+        "answer": "Ticket #96 \"Mobile app crashes on iOS 17 after update\" is **Open**. Category: Technical failure; origin: Customer; branch: Central. Opened 2024-01-28, last updated 2024-01-28.\n\nSource: incident manager (live)"
+      },
+      "duration_ms": 0.0
+    }
+  ],
+  "answer": "Ticket #96 \"Mobile app crashes on iOS 17 after update\" is **Open**. Category: Technical failure; origin: Customer; branch: Central. Opened 2024-01-28, last updated 2024-01-28.\n\nSource: incident manager (live)",
+  "error": null,
+  "checkpoints": [
+    {
+      "step": -1,
+      "after_node": null,
+      "next": [
+        "__start__"
+      ],
+      "state_keys": [
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-48f7-63c8-bfff-94856d4638f4"
+    },
+    {
+      "step": 0,
+      "after_node": null,
+      "next": [
+        "receive_question"
+      ],
+      "state_keys": [
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-48f8-6f66-8000-485ab85a0c89"
+    },
+    {
+      "step": 1,
+      "after_node": "receive_question",
+      "next": [
+        "route_intent"
+      ],
+      "state_keys": [
+        "error",
+        "question",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-48fb-6478-8001-2c1bafd50ac7"
+    },
+    {
+      "step": 2,
+      "after_node": "route_intent",
+      "next": [
+        "lookup_ticket"
+      ],
+      "state_keys": [
+        "error",
+        "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-48fd-69ee-8002-289ebc2829da"
+    },
+    {
+      "step": 3,
+      "after_node": "lookup_ticket",
+      "next": [
+        "synthesize_answer"
+      ],
+      "state_keys": [
+        "error",
+        "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
+        "tool_result",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-4e4a-6a96-8003-4ed140617532"
+    },
+    {
+      "step": 4,
+      "after_node": "synthesize_answer",
+      "next": [],
+      "state_keys": [
+        "answer",
+        "error",
+        "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
+        "tool_result",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-4e4d-6142-8004-40468570176f"
+    }
+  ]
+}

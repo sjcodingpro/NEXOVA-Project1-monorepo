@@ -1,10 +1,17 @@
 {
-  "trace_id": "run-3cc90925149e",
-  "graph_version": "agent-base-v1",
-  "started_at": "2026-11-23T21:50:27+00:00",
+  "trace_id": "run-ec946e2ee0ce",
+  "graph_version": "agent-tools-v1",
+  "started_at": "2026-11-23T23:26:46+00:00",
   "question": "How much does an 8-week training program cost?",
+  "route": "rag",
+  "route_rationale": "no ticket or incident reference: knowledge-base question",
+  "sources_used": [
+    "rag"
+  ],
+  "tool_outcome": null,
   "node_order": [
     "receive_question",
+    "route_intent",
     "retrieve",
     "generate"
   ],
@@ -20,9 +27,22 @@
     },
     {
       "order": 2,
+      "node": "route_intent",
+      "summary": "route=rag: no ticket or incident reference: knowledge-base question",
+      "output": {
+        "route": "rag",
+        "rationale": "no ticket or incident reference: knowledge-base question",
+        "ticket_query": null,
+        "rag_question": "How much does an 8-week training program cost?"
+      },
+      "duration_ms": 0.0
+    },
+    {
+      "order": 3,
       "node": "retrieve",
       "summary": "2 chunk(s) above min_score 0.3",
       "output": {
+        "searched": "How much does an 8-week training program cost?",
         "chunks": [
           {
             "source_document": "pricing-model",
@@ -38,19 +58,19 @@
           }
         ]
       },
-      "duration_ms": 4381.5
+      "duration_ms": 3444.7
     },
     {
-      "order": 3,
+      "order": 4,
       "node": "generate",
       "summary": "answered from 2 chunk(s)",
       "output": {
-        "answer": "Great question. Our 8-week corporate training program in soft skills and leadership starts at **6,200 USD** for groups of up to 15 people. That includes an initial diagnostic, live sessions (in-person, virtual, or hybrid), and a completion certificate.\n\nIf your prospect’s group is larger than 15, we’d need to put together a custom quote.\n\nWant me to help you prepare the next talking point for the call?\n\nSource: pricing-model / Corporate training"
+        "answer": "Great question. Our 8-week corporate training program in soft skills and leadership starts at **6,200 USD** for groups of up to 15 people. That includes an initial diagnostic, live sessions (in-person, virtual, or hybrid), and a completion certificate.\n\nIf you’re looking at a group larger than 15, we’d need to put together a custom quote—happy to help with that once we know the size.\n\nWould you like me to send over a one-pager on the program structure so you can share it with the prospect?\n\nSource: pricing-model / Corporate training; service-lines / Corporate training in soft skills and leadership"
       },
-      "duration_ms": 3288.4
+      "duration_ms": 2841.3
     }
   ],
-  "answer": "Great question. Our 8-week corporate training program in soft skills and leadership starts at **6,200 USD** for groups of up to 15 people. That includes an initial diagnostic, live sessions (in-person, virtual, or hybrid), and a completion certificate.\n\nIf your prospect’s group is larger than 15, we’d need to put together a custom quote.\n\nWant me to help you prepare the next talking point for the call?\n\nSource: pricing-model / Corporate training",
+  "answer": "Great question. Our 8-week corporate training program in soft skills and leadership starts at **6,200 USD** for groups of up to 15 people. That includes an initial diagnostic, live sessions (in-person, virtual, or hybrid), and a completion certificate.\n\nIf you’re looking at a group larger than 15, we’d need to put together a custom quote—happy to help with that once we know the size.\n\nWould you like me to send over a one-pager on the program structure so you can share it with the prospect?\n\nSource: pricing-model / Corporate training; service-lines / Corporate training in soft skills and leadership",
   "error": null,
   "checkpoints": [
     {
@@ -62,7 +82,7 @@
       "state_keys": [
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e787e-5118-6120-bfff-7c6c9c51f3e4"
+      "checkpoint_id": "1f1e7955-9bb3-634c-bfff-27d9615de93f"
     },
     {
       "step": 0,
@@ -74,23 +94,40 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e787e-511c-687e-8000-aaafd7df0582"
+      "checkpoint_id": "1f1e7955-9bb6-6d94-8000-4e0cb171e649"
     },
     {
       "step": 1,
       "after_node": "receive_question",
       "next": [
-        "retrieve"
+        "route_intent"
       ],
       "state_keys": [
         "error",
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e787e-5125-6636-8001-2e1d629fa1ce"
+      "checkpoint_id": "1f1e7955-9bba-6980-8001-e7d7806a280b"
     },
     {
       "step": 2,
+      "after_node": "route_intent",
+      "next": [
+        "retrieve"
+      ],
+      "state_keys": [
+        "error",
+        "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7955-9bbd-6b3a-8002-443b04745b03"
+    },
+    {
+      "step": 3,
       "after_node": "retrieve",
       "next": [
         "generate"
@@ -99,12 +136,16 @@
         "context",
         "error",
         "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e787e-7af2-6d1a-8002-c3508e306829"
+      "checkpoint_id": "1f1e7955-bc9b-6fc8-8003-9c451ff3e9ee"
     },
     {
-      "step": 3,
+      "step": 4,
       "after_node": "generate",
       "next": [],
       "state_keys": [
@@ -112,9 +153,13 @@
         "context",
         "error",
         "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e787e-9a53-66fa-8003-74dd9d5dff8c"
+      "checkpoint_id": "1f1e7955-d7bb-6948-8004-7eadb81b6a6d"
     }
   ]
 }
