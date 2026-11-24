@@ -19,3 +19,5 @@ jobs:
         run: uv sync --frozen
       - name: Run tests/pipelines
         run: uv run pytest tests/pipelines -v
+      - name: Run tests/mcps (company-tools MCP server)
+        run: uv run --project mcps/company-tools --with pytest --with cryptography pytest tests/mcps -v

@@ -36,7 +36,8 @@ class FakeIncidents:
     def list(self, status):
         self.calls.append(("list", status))
         time.sleep(self.delay)
-        return [r for r in self.rows if r["status"] == status]
+        rows = [r for r in self.rows if r["status"] == status]
+        return {"total": len(rows), "incidents": rows[:tools.MAX_LISTED]}   # list_incidents' shape
 
 
 @pytest.fixture
@@ -168,7 +169,30 @@ def test_ticket_tool_is_read_only():
                      "table.insert", "table.update", "table.remove", ".upsert(", "db_lock"):
         assert write_fn not in source, f"tools.py must not reference {write_fn}"
     assert not re.search(r"\b(post|put|patch|delete)\(", source, re.I)   # no HTTP writes either
-    assert {m for m in vars(tools.InProcessIncidentClient) if not m.startswith("_")} == {"get", "list"}
+    assert {m for m in vars(tools.McpIncidentClient) if not m.startswith("_")} == {"get", "list"}
+    assert set(tools.READ_TOOLS.values()) == {"get_incident", "list_incidents"}   # only read tools are called
+
+
+def test_agent_reaches_incidents_only_through_mcp():
+    agent_dir = Path(tools.__file__).parent
+    for py in agent_dir.glob("*.py"):
+        src = py.read_text(encoding="utf-8")
+        assert "app.incidents" not in src and "services.api" not in src and "db.json" not in src, py.name
+    assert "langchain_mcp_adapters" in Path(tools.__file__).read_text(encoding="utf-8")
+
+
+def test_mcp_client_maps_server_errors(monkeypatch):
+    client = tools.McpIncidentClient(url="http://unused", token_provider=object())
+
+    async def not_found(action, args): raise tools.McpToolError("NOT_FOUND", "no ticket")
+    monkeypatch.setattr(client, "_invoke", not_found)
+    assert client.get(482) is None
+
+    async def denied(action, args): raise tools.McpToolError("AUTH_INSUFFICIENT_SCOPE", "x")
+    monkeypatch.setattr(client, "_invoke", denied)
+    monkeypatch.setattr(tools, "_client", client)
+    out = tools.lookup_ticket(tools.TicketLookupInput(ticket_id=96))
+    assert out.found is False and out.outcome == "error" and "AUTH_INSUFFICIENT_SCOPE" in out.error
 
 
 def test_one_responsibility_per_tool():

@@ -7,3 +7,5 @@ __pycache__/
 # Agent run traces (local, queryable via GET /agent/traces)
 data/agent_traces/
 services/api/.agent_traces/
+# MCP server invocation logs (local)
+mcps/company-tools/logs/
