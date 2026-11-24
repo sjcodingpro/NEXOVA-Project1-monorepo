@@ -1,10 +1,17 @@
 {
-  "trace_id": "run-382efb39fa71",
-  "graph_version": "agent-base-v1",
-  "started_at": "2026-11-23T21:50:39+00:00",
+  "trace_id": "run-e7b1d322aef5",
+  "graph_version": "agent-tools-v1",
+  "started_at": "2026-11-23T23:26:59+00:00",
   "question": "What's the weather like in Valencia this weekend?",
+  "route": "rag",
+  "route_rationale": "no ticket or incident reference: knowledge-base question",
+  "sources_used": [
+    "rag"
+  ],
+  "tool_outcome": null,
   "node_order": [
     "receive_question",
+    "route_intent",
     "retrieve",
     "no_context"
   ],
@@ -20,21 +27,34 @@
     },
     {
       "order": 2,
-      "node": "retrieve",
-      "summary": "0 chunk(s) above min_score 0.3",
+      "node": "route_intent",
+      "summary": "route=rag: no ticket or incident reference: knowledge-base question",
       "output": {
-        "chunks": []
+        "route": "rag",
+        "rationale": "no ticket or incident reference: knowledge-base question",
+        "ticket_query": null,
+        "rag_question": "What's the weather like in Valencia this weekend?"
       },
-      "duration_ms": 444.0
+      "duration_ms": 0.0
     },
     {
       "order": 3,
+      "node": "retrieve",
+      "summary": "0 chunk(s) above min_score 0.3",
+      "output": {
+        "searched": "What's the weather like in Valencia this weekend?",
+        "chunks": []
+      },
+      "duration_ms": 669.0
+    },
+    {
+      "order": 4,
       "node": "no_context",
       "summary": "no chunk cleared min_score: honest 'not covered' answer, model not called",
       "output": {
         "answer": "I don't have information about that in Nexova's sales knowledge base. Please check with a senior account manager before answering the prospect."
       },
-      "duration_ms": 0.0
+      "duration_ms": 0.1
     }
   ],
   "answer": "I don't have information about that in Nexova's sales knowledge base. Please check with a senior account manager before answering the prospect.",
@@ -49,7 +69,7 @@
       "state_keys": [
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e787e-bf82-69f8-bfff-cda85234b1cd"
+      "checkpoint_id": "1f1e7956-1992-6a42-bfff-40f0786e0a39"
     },
     {
       "step": 0,
@@ -61,23 +81,40 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e787e-bf84-6370-8000-921a0f95db6b"
+      "checkpoint_id": "1f1e7956-1994-6612-8000-8acdf83df5a4"
     },
     {
       "step": 1,
       "after_node": "receive_question",
       "next": [
-        "retrieve"
+        "route_intent"
       ],
       "state_keys": [
         "error",
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e787e-bf86-66f2-8001-96424cd84141"
+      "checkpoint_id": "1f1e7956-1996-6ffc-8001-f573aed292b3"
     },
     {
       "step": 2,
+      "after_node": "route_intent",
+      "next": [
+        "retrieve"
+      ],
+      "state_keys": [
+        "error",
+        "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
+        "trace_steps"
+      ],
+      "checkpoint_id": "1f1e7956-1999-6efa-8002-004d8a47eff3"
+    },
+    {
+      "step": 3,
       "after_node": "retrieve",
       "next": [
         "no_context"
@@ -86,12 +123,16 @@
         "context",
         "error",
         "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e787e-c3c4-6958-8002-cc00fb3e0835"
+      "checkpoint_id": "1f1e7956-1ffe-62aa-8003-c072491823d3"
     },
     {
-      "step": 3,
+      "step": 4,
       "after_node": "no_context",
       "next": [],
       "state_keys": [
@@ -99,9 +140,13 @@
         "context",
         "error",
         "question",
+        "rag_question",
+        "route",
+        "route_rationale",
+        "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e787e-c3c7-6c02-8003-cb235b35df5e"
+      "checkpoint_id": "1f1e7956-2001-6108-8004-ab411d739380"
     }
   ]
 }

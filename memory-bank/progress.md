@@ -151,3 +151,26 @@
   model call, so it can't invent Nexova facts.
 - Traces: `data/agent_traces/runs.jsonl` locally (gitignored); `AGENT_TRACE_PATH` in Docker, since data/
   is mounted read-only there.
+
+## Support agent Part 2 — ticket tool (`feature/langgraph-external-tools`, 2026-11-23)
+
+- [x] `services/agent/tools.py`: typed `TicketLookupInput` / `TicketLookupOutput`, `lookup_ticket()` reading the
+      real incident manager in-process (`app/incidents/service.py` read functions: `get_incident_by_id`,
+      `list_incidents`). Read-only (a test fails on any write reference). 4 s timeout (`TICKET_TOOL_TIMEOUT_S`).
+- [x] New nodes: `route_intent` (rag / ticket_tool / both from the question text), `lookup_ticket`,
+      `handle_tool_failure` (honest not-found / timeout / error text), `synthesize_answer` (ticket facts copied
+      from the tool, never generated; policy part from `generate_answer()`).
+- [x] Traces now record `route`, `route_rationale`, `sources_used` (ordered) and `tool_outcome`.
+- [x] Evals: ticket → tool only, policy → RAG only, missing ticket → fallback, mixed → tool then RAG
+      (`test_agent_evals.py`), plus `test_agent_tools.py` (contract, timeout, routing table, read-only).
+- Decision: in-process instead of HTTP: the agent runs inside the same FastAPI app, and the HTTP routes need a
+  user JWT. The service layer is exactly what `GET /api/incidents[/{id}]` call. No auth needed in-process.
+- Decision: rule-based router (ticket number / ticket words / policy keywords) so routing is deterministic,
+  explainable in the trace and testable without a model.
+- Stretch (inventory) skipped: inventory lives on Supabase, which is currently unreachable.
+- Record fixtures with services/api's env: `uv run --project services/api python -m services.agent.record_eval_traces`.
+- Fix: for `both`, retrieve searches only the policy clause (`rag_question`), not the ticket wording, which had
+  diluted similarity below min_score so the policy half came back empty (caught by the mixed-question eval).
+- Known retrieval gap: "what does our replacement guarantee cover?" scores just under min_score 0.30 with
+  pplx-embed, so the agent honestly says the knowledge base has nothing (no invention). Mixed-question eval uses
+  the shortlist question instead; threshold deliberately not lowered.
