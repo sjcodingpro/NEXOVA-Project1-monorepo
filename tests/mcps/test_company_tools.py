@@ -348,3 +348,15 @@ def test_signing_keys_are_fetched_once_not_per_request(env, monkeypatch):
         assert rpc(client, "tools/list").status_code == 200
     call(client, "get_incident", {"ticket_id": 96})
     assert len(fetches) == 1
+
+
+def test_browser_playground_can_preflight_but_still_needs_a_token(env):
+    client, _, _ = env
+    origin = "https://mcpplaygroundonline.com"
+    pre = client.options("/mcp", headers={"Origin": origin, "Access-Control-Request-Method": "POST",
+                                          "Access-Control-Request-Headers": "authorization,content-type"})
+    assert pre.status_code == 200 and pre.headers["access-control-allow-origin"] == origin
+    r = rpc(client, "tools/list", tok=False)
+    assert r.status_code == 401 and r.json()["error_code"] == "AUTH_MISSING_TOKEN"
+    other = client.options("/mcp", headers={"Origin": "https://evil.example", "Access-Control-Request-Method": "POST"})
+    assert "access-control-allow-origin" not in other.headers

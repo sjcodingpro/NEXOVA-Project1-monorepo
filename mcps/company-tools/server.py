@@ -30,6 +30,7 @@ from mcp.server.transport_security import TransportSecuritySettings
 from pydantic import ValidationError
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 
@@ -148,7 +149,19 @@ def create_app(*, server_config=None, incidents: IncidentsApiClient | None = Non
     )
     app.state.mcp = mcp
     app.state.mcp_auth = mcp_auth
-    return auth.ErrorCodeMiddleware(app)
+    return _cors(auth.ErrorCodeMiddleware(app))
+
+
+def _cors(app):
+    """Browser MCP clients (MCP Playground) call /mcp cross-origin. Only the origins listed in
+    MCP_CORS_ORIGINS (comma-separated) may do so; CORS answers the preflight before auth runs, and
+    every real request still needs a valid bearer token."""
+    origins = [o.strip() for o in os.environ.get("MCP_CORS_ORIGINS", "https://mcpplaygroundonline.com").split(",")
+               if o.strip()]
+    return CORSMiddleware(app, allow_origins=origins, allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+                          allow_headers=["authorization", "content-type", "accept", "mcp-protocol-version",
+                                         "mcp-session-id", "last-event-id"],
+                          expose_headers=["mcp-session-id", "mcp-protocol-version", "www-authenticate"])
 
 
 if os.environ.get("MCP_AUTH_ISSUER"):
