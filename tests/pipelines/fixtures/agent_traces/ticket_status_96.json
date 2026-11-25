@@ -1,7 +1,7 @@
 {
-  "trace_id": "run-a06bf949721c",
-  "graph_version": "agent-tools-v1",
-  "started_at": "2026-11-23T23:27:04+00:00",
+  "trace_id": "run-565e0826885a",
+  "graph_version": "agent-mcp-v1",
+  "started_at": "2026-11-25T01:10:40+00:00",
   "question": "What's the status of ticket 96?",
   "route": "ticket_tool",
   "route_rationale": "asks about ticket #96: live incident-manager data",
@@ -9,6 +9,7 @@
     "ticket_tool"
   ],
   "tool_outcome": "success",
+  "tool_via": "mcp:company-tools/get_incident",
   "node_order": [
     "receive_question",
     "route_intent",
@@ -58,15 +59,16 @@
             "category": "technical_failure",
             "origin": "customer",
             "branch": "central",
-            "created_at": "2024-01-28T00:00:00+00:00",
-            "updated_at": "2024-01-28T00:00:00+00:00"
+            "created_at": "2024-01-28T00:00:00Z",
+            "updated_at": "2024-01-28T00:00:00Z"
           }
         ],
         "total_matching": null,
         "error": null,
-        "duration_ms": 554.6
+        "duration_ms": 1678.1,
+        "via": "mcp:company-tools/get_incident"
       },
-      "duration_ms": 554.7
+      "duration_ms": 1678.9
     },
     {
       "order": 4,
@@ -90,7 +92,7 @@
       "state_keys": [
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-48f7-63c8-bfff-94856d4638f4"
+      "checkpoint_id": "1f1e86d0-7fc2-639e-bfff-b6159342878f"
     },
     {
       "step": 0,
@@ -102,7 +104,7 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-48f8-6f66-8000-485ab85a0c89"
+      "checkpoint_id": "1f1e86d0-7fc4-611c-8000-57e480296ae7"
     },
     {
       "step": 1,
@@ -115,7 +117,7 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-48fb-6478-8001-2c1bafd50ac7"
+      "checkpoint_id": "1f1e86d0-7fc6-6598-8001-a0e82f80dcd0"
     },
     {
       "step": 2,
@@ -132,7 +134,7 @@
         "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-48fd-69ee-8002-289ebc2829da"
+      "checkpoint_id": "1f1e86d0-7fc8-6bcc-8002-6c1c5e263914"
     },
     {
       "step": 3,
@@ -150,7 +152,7 @@
         "tool_result",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-4e4a-6a96-8003-4ed140617532"
+      "checkpoint_id": "1f1e86d0-8fce-64ea-8003-f3c95ef7df4e"
     },
     {
       "step": 4,
@@ -167,7 +169,7 @@
         "tool_result",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-4e4d-6142-8004-40468570176f"
+      "checkpoint_id": "1f1e86d0-8fd2-6860-8004-bda51fd9cc5a"
     }
   ]
 }

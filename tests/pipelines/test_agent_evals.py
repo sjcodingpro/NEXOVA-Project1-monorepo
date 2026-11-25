@@ -147,3 +147,12 @@ def test_eval_mixed_question_runs_tool_then_rag_in_that_order():
     answer = record["answer"]
     assert "is **" in answer and "#96" in answer               # ticket part: live status from the tool
     assert "additional round" in answer.lower()                # policy part: objection-handling guide
+
+
+@pytest.mark.parametrize("name, tool", [("ticket_status_96", "get_incident"),
+                                        ("ticket_missing_482", "get_incident"),
+                                        ("ticket_and_policy", "get_incident")])
+def test_eval_ticket_lookups_went_through_the_mcp_server(name, tool):
+    record = trace(name)
+    assert record["graph_version"] == "agent-mcp-v1"
+    assert record["tool_via"] == f"mcp:company-tools/{tool}"

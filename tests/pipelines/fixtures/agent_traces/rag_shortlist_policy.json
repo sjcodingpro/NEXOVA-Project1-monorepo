@@ -1,7 +1,7 @@
 {
-  "trace_id": "run-0211f1f6d5be",
-  "graph_version": "agent-tools-v1",
-  "started_at": "2026-11-23T23:27:00+00:00",
+  "trace_id": "run-bc7644fdc33f",
+  "graph_version": "agent-mcp-v1",
+  "started_at": "2026-11-25T01:10:38+00:00",
   "question": "What happens if the shortlist doesn't work for me?",
   "route": "rag",
   "route_rationale": "no ticket or incident reference: knowledge-base question",
@@ -9,6 +9,7 @@
     "rag"
   ],
   "tool_outcome": null,
+  "tool_via": null,
   "node_order": [
     "receive_question",
     "route_intent",
@@ -35,7 +36,7 @@
         "ticket_query": null,
         "rag_question": "What happens if the shortlist doesn't work for me?"
       },
-      "duration_ms": 0.0
+      "duration_ms": 0.2
     },
     {
       "order": 3,
@@ -58,19 +59,19 @@
           }
         ]
       },
-      "duration_ms": 392.5
+      "duration_ms": 331.8
     },
     {
       "order": 4,
       "node": "generate",
       "summary": "answered from 2 chunk(s)",
       "output": {
-        "answer": "Great question. If the initial shortlist doesn’t work for you, we offer one additional round of search at no cost—as long as you share specific feedback on why those candidates weren’t a fit. That way we can refine the profile and come back with a stronger set.  \n\nWould you like me to walk through how we typically gather that feedback to make the second round faster?  \n\nSource: objection-handling / Handling Common Prospect Objections"
+        "answer": "That's a great question, and it's something we've built into our process to protect your investment.\n\nIf none of the candidates in the initial shortlist are acceptable, Nexova will conduct **one additional round of search at no cost**. The only thing we ask is that you provide specific feedback on why those candidates didn't fit, so we can refine our search criteria and come back with a stronger, more aligned slate.\n\nWe also have a service-level commitment in place: if 4 weeks into an executive search no qualified candidate has been presented, the case is automatically escalated to our Operations Manager, Javier Almeida, who will proactively contact you with a clear action plan to get things back on track.\n\nDoes that address your concern? If so, I'd suggest we set a time to review the specific requirements for this role so we can get the search started.\n\nSource: objection-handling / Hiring Process SLA"
       },
-      "duration_ms": 3877.9
+      "duration_ms": 1627.7
     }
   ],
-  "answer": "Great question. If the initial shortlist doesn’t work for you, we offer one additional round of search at no cost—as long as you share specific feedback on why those candidates weren’t a fit. That way we can refine the profile and come back with a stronger set.  \n\nWould you like me to walk through how we typically gather that feedback to make the second round faster?  \n\nSource: objection-handling / Handling Common Prospect Objections",
+  "answer": "That's a great question, and it's something we've built into our process to protect your investment.\n\nIf none of the candidates in the initial shortlist are acceptable, Nexova will conduct **one additional round of search at no cost**. The only thing we ask is that you provide specific feedback on why those candidates didn't fit, so we can refine our search criteria and come back with a stronger, more aligned slate.\n\nWe also have a service-level commitment in place: if 4 weeks into an executive search no qualified candidate has been presented, the case is automatically escalated to our Operations Manager, Javier Almeida, who will proactively contact you with a clear action plan to get things back on track.\n\nDoes that address your concern? If so, I'd suggest we set a time to review the specific requirements for this role so we can get the search started.\n\nSource: objection-handling / Hiring Process SLA",
   "error": null,
   "checkpoints": [
     {
@@ -82,7 +83,7 @@
       "state_keys": [
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-2018-6f38-bfff-319042c09ab0"
+      "checkpoint_id": "1f1e86d0-6cf9-6816-bfff-b95f717b31a1"
     },
     {
       "step": 0,
@@ -94,7 +95,7 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-201c-6278-8000-4d63283a898a"
+      "checkpoint_id": "1f1e86d0-6cfb-6f3a-8000-00ba0d7da18c"
     },
     {
       "step": 1,
@@ -107,7 +108,7 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-2020-6fb2-8001-e4d6526bec99"
+      "checkpoint_id": "1f1e86d0-6cfe-6ff0-8001-8eeb9f0ee851"
     },
     {
       "step": 2,
@@ -124,7 +125,7 @@
         "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-2026-648a-8002-98329f65e50b"
+      "checkpoint_id": "1f1e86d0-6d02-6cf4-8002-b7d091b8f39b"
     },
     {
       "step": 3,
@@ -142,7 +143,7 @@
         "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-23e8-6276-8003-95f9c638ded1"
+      "checkpoint_id": "1f1e86d0-7030-62b4-8003-7eb43a893413"
     },
     {
       "step": 4,
@@ -159,7 +160,7 @@
         "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-48e7-6c2a-8004-47bf2410877c"
+      "checkpoint_id": "1f1e86d0-7fb8-63c6-8004-4922dac41d2e"
     }
   ]
 }

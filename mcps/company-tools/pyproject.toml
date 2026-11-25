@@ -1,0 +1,13 @@
+[project]
+name = "nexova-company-tools-mcp"
+version = "0.1.0"
+description = "Nexova company-tools MCP server: Incidents Manager tickets + read-only inventory, OAuth via MCP Auth"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.28.1",
+    "mcp>=1.24,<2",
+    "mcpauth==0.2.0b1",
+    "pydantic>=2.14.4",
+    "python-dotenv>=1.2.4",
+    "uvicorn[standard]>=0.54.0",
+]

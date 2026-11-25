@@ -5,10 +5,10 @@ trace to tests/pipelines/fixtures/agent_traces/<case>.json. The evals then asser
 those saved traces, so CI never needs live model calls. Re-record after changing the graph,
 the prompt or the knowledge base.
 
-Run from the repo root, with services/api's environment (the ticket tool imports the incident
-manager's service layer, which needs its dependencies):
+Since the MCP migration the ticket tool goes through the company-tools MCP server, so start it
+(and the Incidents API behind it) first, with the agent's AGENT_OAUTH_* and AGENT_MCP_URL in .env:
 
-    uv run --project services/api python -m services.agent.record_eval_traces
+    uv run python -m services.agent.record_eval_traces
 """
 from __future__ import annotations
 

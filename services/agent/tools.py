@@ -1,16 +1,17 @@
-"""Agent tools that read live operational data (Support Agent Part 2).
+"""Agent tools that read live operational data (Support Agent Part 2, migrated to MCP).
 
 lookup_ticket(TicketLookupInput) -> TicketLookupOutput
-    Reads Nexova's Centralized Incident Manager. One responsibility: tickets. Read-only.
+    Reads Nexova's Incidents Manager. One responsibility: tickets. Read-only.
 
-Transport: in-process, through the incident manager's own service layer
-(services/api/app/incidents/service.py: get_incident_by_id / list_incidents), the same
-functions behind GET /api/incidents and GET /api/incidents/{id}. The agent runs inside the
-same FastAPI app, so this avoids an HTTP hop to itself. Those HTTP routes require a user JWT;
-the service layer doesn't, so no credential is needed or stored here.
+Transport: the company-tools MCP server (mcps/company-tools), as an MCP client through
+langchain-mcp-adapters. The agent loads the server's tools over Streamable HTTP and calls
+`get_incident` / `list_incidents` with its own OAuth access token (client-credentials grant,
+scope `incidents:read` only). This is the ONLY path from the agent to incidents: the old
+in-process service-layer client was removed, and tests/pipelines/test_agent_tools.py fails if
+anything under services/agent imports the Incidents Manager directly.
 
-Read-only by construction: only the two read functions are ever looked up, and
-tests/pipelines/test_agent_tools.py fails if this module references a write function.
+Read-only by construction: the agent's token carries no write scope, and McpIncidentClient only
+knows the two read tools.
 
 Every call runs under an explicit timeout (TICKET_TOOL_TIMEOUT_S, default 4 seconds) and
 never raises: failures come back as found=False with outcome "timeout" / "not_found" /
@@ -18,12 +19,17 @@ never raises: failures come back as found=False with outcome "timeout" / "not_fo
 """
 from __future__ import annotations
 
+import asyncio
+import json
 import os
-import sys
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FutureTimeout
-from pathlib import Path
+from datetime import timedelta
 from typing import Callable, Literal
+
+from langchain_mcp_adapters.client import MultiServerMCPClient  # imported at load: ~3 s cold, kept out of the timed call
+
+from services.agent.auth import AgentTokenProvider
 
 from pydantic import BaseModel, Field
 
@@ -71,30 +77,81 @@ class TicketLookupOutput(BaseModel):
     total_matching: int | None = None    # list lookups: how many tickets match the filter
     error: str | None = None             # short, safe description; never an exception dump
     duration_ms: float | None = None
+    via: str | None = None               # which MCP tool answered, e.g. "mcp:company-tools/get_incident"
 
 
-# ----------------------------------------------------------------- incident manager access
-def _incident_service():
-    """The incident manager's service layer (services/api/app/incidents/service.py)."""
-    api_root = Path(__file__).resolve().parents[1] / "api"
-    if str(api_root) not in sys.path:
-        sys.path.insert(0, str(api_root))
-    from app.incidents import service
-    return service
+# ------------------------------------------------- incident manager access (via the MCP server)
+MCP_SERVER_NAME = "company-tools"
+READ_TOOLS = {"get": "get_incident", "list": "list_incidents"}
 
 
-class InProcessIncidentClient:
-    """Read-only access to the incident manager. Only these two methods exist."""
+class McpToolError(Exception):
+    def __init__(self, code: str, message: str = ""):
+        super().__init__(f"{code}: {message}")
+        self.code = code
+
+
+class McpIncidentClient:
+    """Reads tickets through the company-tools MCP server with langchain-mcp-adapters.
+    Only the two read tools are ever invoked."""
+
+    def __init__(self, url: str | None = None, token_provider: AgentTokenProvider | None = None):
+        self.url = url or os.environ.get("AGENT_MCP_URL", "http://localhost:8010/mcp")
+        self._tokens = token_provider or AgentTokenProvider()
+
+    def prepare(self) -> None:
+        """Fetch (or reuse the cached) OAuth token before the timed tool call, so a cold token
+        request to the authorization server doesn't eat the ticket tool's time budget."""
+        self._tokens.get()
+
+    async def _tools(self) -> dict:
+        """Tool objects from the MCP server, discovered once per access token. Each call then opens
+        one MCP session (initialize + tools/call) instead of a second one for tools/list."""
+        token = self._tokens.get()
+        cached_token, cached_tools = getattr(self, "_tool_cache", (None, None))
+        if cached_token == token:
+            return cached_tools
+        client = MultiServerMCPClient({MCP_SERVER_NAME: {
+            "transport": "streamable_http",
+            "url": self.url,
+            "headers": {"Authorization": f"Bearer {token}"},
+            "timeout": timedelta(seconds=TICKET_TOOL_TIMEOUT_S),
+        }})
+        tools = {t.name: t for t in await client.get_tools(server_name=MCP_SERVER_NAME)}
+        self._tool_cache = (token, tools)
+        return tools
+
+    async def _invoke(self, action: str, args: dict) -> dict:
+        tool_name = READ_TOOLS[action]
+        tools = await self._tools()
+        if tool_name not in tools:
+            raise McpToolError("TOOL_NOT_FOUND", f"{tool_name} not offered by the MCP server")
+        msg = await tools[tool_name].ainvoke({"type": "tool_call", "id": "lookup", "name": tool_name, "args": args})
+        structured = (msg.artifact or {}).get("structured_content") if isinstance(msg.artifact, dict) else None
+        if structured is not None and getattr(msg, "status", "success") != "error":
+            return structured
+        text = msg.content if isinstance(msg.content, str) else " ".join(
+            b.get("text", "") for b in msg.content if isinstance(b, dict))
+        try:
+            err = json.loads(text)
+        except ValueError:
+            raise McpToolError("UPSTREAM_ERROR", text[:200])
+        raise McpToolError(err.get("error_code", "UPSTREAM_ERROR"), err.get("message", ""))
 
     def get(self, ticket_id: int) -> dict | None:
-        return _incident_service().get_incident_by_id(ticket_id)
+        try:
+            return asyncio.run(self._invoke("get", {"ticket_id": ticket_id}))
+        except McpToolError as exc:
+            if exc.code == "NOT_FOUND":
+                return None
+            raise
 
-    def list(self, status: str) -> list[dict]:
-        from app.incidents.models import Status
-        return _incident_service().list_incidents(status=Status(status))
+    def list(self, status: str) -> dict:
+        """{"total": n, "incidents": [newest first, up to MAX_LISTED]}"""
+        return asyncio.run(self._invoke("list", {"status": status, "limit": MAX_LISTED}))
 
 
-_client = InProcessIncidentClient()
+_client = McpIncidentClient()
 _pool = ThreadPoolExecutor(max_workers=4, thread_name_prefix="ticket-tool")
 
 
@@ -123,21 +180,31 @@ def lookup_ticket(query: TicketLookupInput) -> TicketLookupOutput:
         return TicketLookupOutput(query=query, duration_ms=round((time.perf_counter() - started) * 1000, 1), **kw)
 
     try:
+        if hasattr(_client, "prepare"):
+            _client.prepare()          # token first; it has its own timeout (AGENT_OAUTH_TIMEOUT_S)
         if query.ticket_id is not None:
             row = _with_timeout(_client.get, query.ticket_id)
             if row is None:
-                return done(found=False, outcome="not_found", error=f"ticket {query.ticket_id} does not exist")
-            return done(found=True, outcome="success", tickets=[_to_ticket(row)])
+                return done(found=False, outcome="not_found", error=f"ticket {query.ticket_id} does not exist",
+                            via=f"mcp:{MCP_SERVER_NAME}/{READ_TOOLS['get']}")
+            return done(found=True, outcome="success", tickets=[_to_ticket(row)],
+                        via=f"mcp:{MCP_SERVER_NAME}/{READ_TOOLS['get']}")
         if query.status is not None:
-            rows = _with_timeout(_client.list, query.status)
-            if not rows:
+            page = _with_timeout(_client.list, query.status)
+            rows, total = page["incidents"], page["total"]
+            if not total:
                 return done(found=False, outcome="not_found", total_matching=0,
-                            error=f"no tickets with status {query.status}")
-            return done(found=True, outcome="success", total_matching=len(rows),
-                        tickets=[_to_ticket(r) for r in rows[:MAX_LISTED]])
+                            error=f"no tickets with status {query.status}",
+                            via=f"mcp:{MCP_SERVER_NAME}/{READ_TOOLS['list']}")
+            return done(found=True, outcome="success", total_matching=total,
+                        tickets=[_to_ticket(r) for r in rows[:MAX_LISTED]],
+                        via=f"mcp:{MCP_SERVER_NAME}/{READ_TOOLS['list']}")
         return done(found=False, outcome="error", error="no ticket id or status to look up")
     except FutureTimeout:
         return done(found=False, outcome="timeout",
-                    error=f"incident manager did not answer within {TICKET_TOOL_TIMEOUT_S:g}s")
-    except Exception as exc:  # DB unreadable, malformed row...
-        return done(found=False, outcome="error", error=f"incident manager error ({type(exc).__name__})")
+                    error=f"MCP server / incident manager did not answer within {TICKET_TOOL_TIMEOUT_S:g}s")
+    except McpToolError as exc:  # e.g. UPSTREAM_TIMEOUT, AUTH_INSUFFICIENT_SCOPE from the server
+        return done(found=False, outcome="timeout" if exc.code == "UPSTREAM_TIMEOUT" else "error",
+                    error=f"MCP server error {exc.code}")
+    except Exception as exc:  # MCP server unreachable, token request refused...
+        return done(found=False, outcome="error", error=f"MCP server unreachable ({type(exc).__name__})")

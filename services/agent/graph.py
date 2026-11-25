@@ -28,7 +28,7 @@ from services.agent import nodes
 from services.agent.state import AgentState
 from services.agent.tracing import save_trace
 
-GRAPH_VERSION = "agent-tools-v1"
+GRAPH_VERSION = "agent-mcp-v1"
 logger = logging.getLogger("nexova.agent")
 SOURCES = {"lookup_ticket": "ticket_tool", "retrieve": "rag"}
 
@@ -109,6 +109,8 @@ def run_agent(question: str, *, graph=None, persist: bool = True) -> dict:
         # Which data sources ran, in order: "ticket_tool" (incident manager) and/or "rag".
         "sources_used": [SOURCES[s["node"]] for s in steps if s["node"] in SOURCES],
         "tool_outcome": (final.get("tool_result") or {}).get("outcome"),
+        # Transport evidence: which MCP server tool answered (None when no ticket lookup ran).
+        "tool_via": (final.get("tool_result") or {}).get("via"),
         "node_order": [s["node"] for s in steps],
         "steps": steps,
         "answer": final.get("answer"),

@@ -1,12 +1,13 @@
 {
-  "trace_id": "run-1ebaa03c4656",
-  "graph_version": "agent-tools-v1",
-  "started_at": "2026-11-23T23:27:00+00:00",
+  "trace_id": "run-14a210f6f40b",
+  "graph_version": "agent-mcp-v1",
+  "started_at": "2026-11-25T01:10:38+00:00",
   "question": "   ",
   "route": null,
   "route_rationale": null,
   "sources_used": [],
   "tool_outcome": null,
+  "tool_via": null,
   "node_order": [
     "receive_question"
   ],
@@ -33,7 +34,7 @@
       "state_keys": [
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-200b-63a6-bfff-df913d22f7cc"
+      "checkpoint_id": "1f1e86d0-6cec-644a-bfff-3fbdee12c88e"
     },
     {
       "step": 0,
@@ -45,7 +46,7 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-200d-6084-8000-62a5c886cde5"
+      "checkpoint_id": "1f1e86d0-6ced-6e4e-8000-3e31fb6b6a0b"
     },
     {
       "step": 1,
@@ -56,7 +57,7 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-200f-6bc2-8001-7a13a6c1c877"
+      "checkpoint_id": "1f1e86d0-6cf0-623e-8001-35f34a55456e"
     }
   ]
 }

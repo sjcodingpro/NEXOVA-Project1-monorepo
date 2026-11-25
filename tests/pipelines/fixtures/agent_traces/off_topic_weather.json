@@ -1,7 +1,7 @@
 {
-  "trace_id": "run-e7b1d322aef5",
-  "graph_version": "agent-tools-v1",
-  "started_at": "2026-11-23T23:26:59+00:00",
+  "trace_id": "run-bfa7819d655c",
+  "graph_version": "agent-mcp-v1",
+  "started_at": "2026-11-25T01:10:38+00:00",
   "question": "What's the weather like in Valencia this weekend?",
   "route": "rag",
   "route_rationale": "no ticket or incident reference: knowledge-base question",
@@ -9,6 +9,7 @@
     "rag"
   ],
   "tool_outcome": null,
+  "tool_via": null,
   "node_order": [
     "receive_question",
     "route_intent",
@@ -45,7 +46,7 @@
         "searched": "What's the weather like in Valencia this weekend?",
         "chunks": []
       },
-      "duration_ms": 669.0
+      "duration_ms": 271.0
     },
     {
       "order": 4,
@@ -54,7 +55,7 @@
       "output": {
         "answer": "I don't have information about that in Nexova's sales knowledge base. Please check with a senior account manager before answering the prospect."
       },
-      "duration_ms": 0.1
+      "duration_ms": 0.0
     }
   ],
   "answer": "I don't have information about that in Nexova's sales knowledge base. Please check with a senior account manager before answering the prospect.",
@@ -69,7 +70,7 @@
       "state_keys": [
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-1992-6a42-bfff-40f0786e0a39"
+      "checkpoint_id": "1f1e86d0-6a3f-6d78-bfff-787be7b4fbf9"
     },
     {
       "step": 0,
@@ -81,7 +82,7 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-1994-6612-8000-8acdf83df5a4"
+      "checkpoint_id": "1f1e86d0-6a42-63b6-8000-6c423050cfc6"
     },
     {
       "step": 1,
@@ -94,7 +95,7 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-1996-6ffc-8001-f573aed292b3"
+      "checkpoint_id": "1f1e86d0-6a44-6972-8001-6a7c78cf7f13"
     },
     {
       "step": 2,
@@ -111,7 +112,7 @@
         "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-1999-6efa-8002-004d8a47eff3"
+      "checkpoint_id": "1f1e86d0-6a46-6fce-8002-1533b62c08bf"
     },
     {
       "step": 3,
@@ -129,7 +130,7 @@
         "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-1ffe-62aa-8003-c072491823d3"
+      "checkpoint_id": "1f1e86d0-6cdf-611e-8003-fcf0e6ccd64c"
     },
     {
       "step": 4,
@@ -146,7 +147,7 @@
         "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-2001-6108-8004-ab411d739380"
+      "checkpoint_id": "1f1e86d0-6ce1-664e-8004-79f9609c2b83"
     }
   ]
 }
