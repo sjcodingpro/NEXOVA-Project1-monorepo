@@ -334,3 +334,17 @@ def test_every_invocation_is_logged_with_client_tool_and_result(env):
     assert entries[0]["client_id"] == "agent-support" and entries[2]["client_id"] == "partner-readonly"
     assert entries[2]["input_summary"]["description"] == "<14 chars>"     # free text not logged
     assert all("timestamp" in e and "duration_ms" in e for e in entries)
+
+
+def test_signing_keys_are_fetched_once_not_per_request(env, monkeypatch):
+    """Regression: mcpauth 0.2.0b1 re-downloaded the JWKS on every HTTP request (seconds per tool
+    call against a real Auth0 tenant). auth.py memoises the verifier, so keys are fetched once."""
+    import auth
+    auth._cached_verify_jwt.cache_clear()
+    fetches = []
+    monkeypatch.setattr(jwt.PyJWKClient, "fetch_data", lambda self: fetches.append(1) or jwks())
+    client, _, _ = env
+    for _ in range(5):
+        assert rpc(client, "tools/list").status_code == 200
+    call(client, "get_incident", {"ticket_id": 96})
+    assert len(fetches) == 1

@@ -27,6 +27,8 @@ from concurrent.futures import TimeoutError as FutureTimeout
 from datetime import timedelta
 from typing import Callable, Literal
 
+from langchain_mcp_adapters.client import MultiServerMCPClient  # imported at load: ~3 s cold, kept out of the timed call
+
 from services.agent.auth import AgentTokenProvider
 
 from pydantic import BaseModel, Field
@@ -97,16 +99,31 @@ class McpIncidentClient:
         self.url = url or os.environ.get("AGENT_MCP_URL", "http://localhost:8010/mcp")
         self._tokens = token_provider or AgentTokenProvider()
 
-    async def _invoke(self, action: str, args: dict) -> dict:
-        from langchain_mcp_adapters.client import MultiServerMCPClient
+    def prepare(self) -> None:
+        """Fetch (or reuse the cached) OAuth token before the timed tool call, so a cold token
+        request to the authorization server doesn't eat the ticket tool's time budget."""
+        self._tokens.get()
+
+    async def _tools(self) -> dict:
+        """Tool objects from the MCP server, discovered once per access token. Each call then opens
+        one MCP session (initialize + tools/call) instead of a second one for tools/list."""
+        token = self._tokens.get()
+        cached_token, cached_tools = getattr(self, "_tool_cache", (None, None))
+        if cached_token == token:
+            return cached_tools
         client = MultiServerMCPClient({MCP_SERVER_NAME: {
             "transport": "streamable_http",
             "url": self.url,
-            "headers": {"Authorization": f"Bearer {self._tokens.get()}"},
+            "headers": {"Authorization": f"Bearer {token}"},
             "timeout": timedelta(seconds=TICKET_TOOL_TIMEOUT_S),
         }})
-        tool_name = READ_TOOLS[action]
         tools = {t.name: t for t in await client.get_tools(server_name=MCP_SERVER_NAME)}
+        self._tool_cache = (token, tools)
+        return tools
+
+    async def _invoke(self, action: str, args: dict) -> dict:
+        tool_name = READ_TOOLS[action]
+        tools = await self._tools()
         if tool_name not in tools:
             raise McpToolError("TOOL_NOT_FOUND", f"{tool_name} not offered by the MCP server")
         msg = await tools[tool_name].ainvoke({"type": "tool_call", "id": "lookup", "name": tool_name, "args": args})
@@ -163,6 +180,8 @@ def lookup_ticket(query: TicketLookupInput) -> TicketLookupOutput:
         return TicketLookupOutput(query=query, duration_ms=round((time.perf_counter() - started) * 1000, 1), **kw)
 
     try:
+        if hasattr(_client, "prepare"):
+            _client.prepare()          # token first; it has its own timeout (AGENT_OAUTH_TIMEOUT_S)
         if query.ticket_id is not None:
             row = _with_timeout(_client.get, query.ticket_id)
             if row is None:

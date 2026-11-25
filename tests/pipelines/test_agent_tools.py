@@ -169,7 +169,7 @@ def test_ticket_tool_is_read_only():
                      "table.insert", "table.update", "table.remove", ".upsert(", "db_lock"):
         assert write_fn not in source, f"tools.py must not reference {write_fn}"
     assert not re.search(r"\b(post|put|patch|delete)\(", source, re.I)   # no HTTP writes either
-    assert {m for m in vars(tools.McpIncidentClient) if not m.startswith("_")} == {"get", "list"}
+    assert {m for m in vars(tools.McpIncidentClient) if not m.startswith("_")} == {"get", "list", "prepare"}
     assert set(tools.READ_TOOLS.values()) == {"get_incident", "list_incidents"}   # only read tools are called
 
 
@@ -182,7 +182,9 @@ def test_agent_reaches_incidents_only_through_mcp():
 
 
 def test_mcp_client_maps_server_errors(monkeypatch):
-    client = tools.McpIncidentClient(url="http://unused", token_provider=object())
+    class StaticToken:
+        def get(self): return "test-token"
+    client = tools.McpIncidentClient(url="http://unused", token_provider=StaticToken())
 
     async def not_found(action, args): raise tools.McpToolError("NOT_FOUND", "no ticket")
     monkeypatch.setattr(client, "_invoke", not_found)

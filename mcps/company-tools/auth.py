@@ -25,6 +25,26 @@ from mcpauth.utils import fetch_server_config
 
 from errors import MESSAGES, ToolFailure
 
+
+# --- JWKS caching -------------------------------------------------------------------------------
+# mcpauth 0.2.0b1 builds a new PyJWKClient for every request (token_verifier.create_verify_jwt_function
+# calls create_verify_jwt(jwks_uri) inside verify_jwt), so every HTTP request re-downloads the
+# authorization server's signing keys. One MCP tool call is 3-4 HTTP requests, so against a real
+# Auth0 tenant that added seconds per call. We memoise the verifier per JWKS URI; PyJWKClient then
+# keeps the keys cached (and refetches on an unknown `kid`, so key rotation still works).
+import functools as _functools
+
+from mcpauth.auth import token_verifier as _token_verifier
+from mcpauth.utils import create_verify_jwt as _create_verify_jwt
+
+
+@_functools.lru_cache(maxsize=8)
+def _cached_verify_jwt(jwks_uri: str, leeway: float = 60):
+    return _create_verify_jwt(jwks_uri, leeway=leeway)
+
+
+_token_verifier.create_verify_jwt = _cached_verify_jwt
+
 log = logging.getLogger("company_tools.auth")
 
 SCOPES = {

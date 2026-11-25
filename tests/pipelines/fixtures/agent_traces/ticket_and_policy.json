@@ -1,7 +1,7 @@
 {
-  "trace_id": "run-4118efdce146",
-  "graph_version": "agent-tools-v1",
-  "started_at": "2026-11-23T23:27:05+00:00",
+  "trace_id": "run-f76501b92bd8",
+  "graph_version": "agent-mcp-v1",
+  "started_at": "2026-11-25T01:10:42+00:00",
   "question": "Ticket 96 came from a client: what happens if the shortlist doesn't work for them?",
   "route": "both",
   "route_rationale": "asks about ticket #96 and a policy topic ('shortlist')",
@@ -10,6 +10,7 @@
     "rag"
   ],
   "tool_outcome": "success",
+  "tool_via": "mcp:company-tools/get_incident",
   "node_order": [
     "receive_question",
     "route_intent",
@@ -39,7 +40,7 @@
         },
         "rag_question": "what happens if the shortlist doesn't work for them?"
       },
-      "duration_ms": 0.5
+      "duration_ms": 0.4
     },
     {
       "order": 3,
@@ -60,15 +61,16 @@
             "category": "technical_failure",
             "origin": "customer",
             "branch": "central",
-            "created_at": "2024-01-28T00:00:00+00:00",
-            "updated_at": "2024-01-28T00:00:00+00:00"
+            "created_at": "2024-01-28T00:00:00Z",
+            "updated_at": "2024-01-28T00:00:00Z"
           }
         ],
         "total_matching": null,
         "error": null,
-        "duration_ms": 1.6
+        "duration_ms": 112.4,
+        "via": "mcp:company-tools/get_incident"
       },
-      "duration_ms": 1.7
+      "duration_ms": 112.5
     },
     {
       "order": 4,
@@ -91,19 +93,19 @@
           }
         ]
       },
-      "duration_ms": 421.7
+      "duration_ms": 336.2
     },
     {
       "order": 5,
       "node": "synthesize_answer",
       "summary": "merged ticket data + knowledge-base answer",
       "output": {
-        "answer": "Ticket #96 \"Mobile app crashes on iOS 17 after update\" is **Open**. Category: Technical failure; origin: Customer; branch: Central. Opened 2024-01-28, last updated 2024-01-28.\n\nGreat question, and it's a fair one to have. Nobody wants to invest weeks and come up empty. Here's how we handle that scenario.\n\nFirst, if none of the candidates in the initial shortlist are acceptable, we'll go back to the market and run one additional round of search for you at no cost. That's our standard process. The one condition is that we need your specific feedback on why those candidates didn't fit, so we can refine the profile and make the next round count.\n\nSecond, to keep things transparent, we have a built-in checkpoint. If we're 4 weeks into an executive search and still haven't presented a qualified candidate, our assigned consultant is required to escalate the case to our Operations Manager, Javier Almeida. At that point, we proactively reach out to you with a clear action plan to get things back on track.\n\nSo you're never left wondering where things stand, and you always have a clear path forward. Does that address your concern? If you'd like, we can set up a quick call to walk through the process in more detail and see if we're a good fit for your current opening. \n\nSource: objection-handling / Handling Common Prospect Objections › What happens if I'm not satisfied with the shortlist presented? ; hiring-process-sla / Hiring Process SLA\n\nSource: incident manager (live)"
+        "answer": "Ticket #96 \"Mobile app crashes on iOS 17 after update\" is **Open**. Category: Technical failure; origin: Customer; branch: Central. Opened 2024-01-28, last updated 2024-01-28.\n\nThat's a great question, and it's one we've built a safety net for. If none of the candidates on the initial shortlist are a fit, Nexova will conduct one additional round of search at no cost. The only thing we ask is that you provide specific feedback on why they didn't work, so we can refine our approach and hit the mark the second time.\n\nWe also have a built-in escalation process: if we're 4 weeks into an executive search and haven't presented a qualified candidate, our Operations Manager, Javier Almeida, gets involved, and we proactively share an action plan with you. So you're never left in the dark.\n\nDoes that address your concern? If you'd like, we can set up a quick call to walk through how this would apply to your specific role.\n\nSource: objection-handling / Hiring Process SLA\n\nSource: incident manager (live)"
       },
-      "duration_ms": 15211.7
+      "duration_ms": 1721.8
     }
   ],
-  "answer": "Ticket #96 \"Mobile app crashes on iOS 17 after update\" is **Open**. Category: Technical failure; origin: Customer; branch: Central. Opened 2024-01-28, last updated 2024-01-28.\n\nGreat question, and it's a fair one to have. Nobody wants to invest weeks and come up empty. Here's how we handle that scenario.\n\nFirst, if none of the candidates in the initial shortlist are acceptable, we'll go back to the market and run one additional round of search for you at no cost. That's our standard process. The one condition is that we need your specific feedback on why those candidates didn't fit, so we can refine the profile and make the next round count.\n\nSecond, to keep things transparent, we have a built-in checkpoint. If we're 4 weeks into an executive search and still haven't presented a qualified candidate, our assigned consultant is required to escalate the case to our Operations Manager, Javier Almeida. At that point, we proactively reach out to you with a clear action plan to get things back on track.\n\nSo you're never left wondering where things stand, and you always have a clear path forward. Does that address your concern? If you'd like, we can set up a quick call to walk through the process in more detail and see if we're a good fit for your current opening. \n\nSource: objection-handling / Handling Common Prospect Objections › What happens if I'm not satisfied with the shortlist presented? ; hiring-process-sla / Hiring Process SLA\n\nSource: incident manager (live)",
+  "answer": "Ticket #96 \"Mobile app crashes on iOS 17 after update\" is **Open**. Category: Technical failure; origin: Customer; branch: Central. Opened 2024-01-28, last updated 2024-01-28.\n\nThat's a great question, and it's one we've built a safety net for. If none of the candidates on the initial shortlist are a fit, Nexova will conduct one additional round of search at no cost. The only thing we ask is that you provide specific feedback on why they didn't work, so we can refine our approach and hit the mark the second time.\n\nWe also have a built-in escalation process: if we're 4 weeks into an executive search and haven't presented a qualified candidate, our Operations Manager, Javier Almeida, gets involved, and we proactively share an action plan with you. So you're never left in the dark.\n\nDoes that address your concern? If you'd like, we can set up a quick call to walk through how this would apply to your specific role.\n\nSource: objection-handling / Hiring Process SLA\n\nSource: incident manager (live)",
   "error": null,
   "checkpoints": [
     {
@@ -115,7 +117,7 @@
       "state_keys": [
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-4e7a-6d40-bfff-f36924359758"
+      "checkpoint_id": "1f1e86d0-90f6-6df4-bfff-8d378e02fa67"
     },
     {
       "step": 0,
@@ -127,7 +129,7 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-4e7c-687a-8000-915490f87eea"
+      "checkpoint_id": "1f1e86d0-90f8-6a32-8000-43f7687105d1"
     },
     {
       "step": 1,
@@ -140,7 +142,7 @@
         "question",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-4e83-6648-8001-8214f1f69ff8"
+      "checkpoint_id": "1f1e86d0-90fb-6264-8001-9c597ac87040"
     },
     {
       "step": 2,
@@ -157,7 +159,7 @@
         "ticket_query",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-4e89-641c-8002-891c326f1cce"
+      "checkpoint_id": "1f1e86d0-90fe-6e64-8002-6b8768467544"
     },
     {
       "step": 3,
@@ -175,7 +177,7 @@
         "tool_result",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-4e8f-6704-8003-cf491a04d22a"
+      "checkpoint_id": "1f1e86d0-9213-6afc-8003-e9e48445dea2"
     },
     {
       "step": 4,
@@ -194,7 +196,7 @@
         "tool_result",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-5298-6008-8004-04103483105b"
+      "checkpoint_id": "1f1e86d0-954b-6648-8004-49eaa0db7586"
     },
     {
       "step": 5,
@@ -212,7 +214,7 @@
         "tool_result",
         "trace_steps"
       ],
-      "checkpoint_id": "1f1e7956-e3ae-6416-8005-71f96a610dac"
+      "checkpoint_id": "1f1e86d0-a5b9-61d8-8005-5956d015f808"
     }
   ]
 }

@@ -118,5 +118,6 @@ direct call into the Incidents Manager's service layer was removed.
 uv run --project mcps/company-tools --with pytest --with cryptography pytest tests/mcps -q
 ```
 
-27 tests: auth failures, discovery, every tool, scope checks, write rejection, timeouts, error
-codes and the invocation log, against a fake company API and locally signed tokens.
+28 tests: auth failures, discovery, every tool, scope checks, write rejection, timeouts, error
+codes, the invocation log and signing-key caching, against a fake company API and locally
+signed tokens.
